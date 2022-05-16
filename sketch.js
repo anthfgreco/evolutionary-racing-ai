@@ -1,31 +1,26 @@
-let turningSpeed = 3;
-let maxSpeed = 7;
-let drivingAccel = 0.1;
-let brakingAccel = 0.1;
-let frictionAccel = 0.03;
-let walls = [];
-let nn;
-let state = 'player_input';
-points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
-points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]]
-let nn_options = {
+const TURNING_SPEED = 3;
+const MAX_SPEED = 7;
+const DRIVING_ACCEL = 0.1;
+const BRAKING_ACCEL = 0.1;
+const FRICTION_ACCEL = 0.03;
+const POPULATION_SIZE = 25;
+const MUTATION_RATE = 0.02;
+const nn_options = {
   inputs: 5,
   outputs: ['left', 'right', 'drive'],
   task: "classification",
   noTraining: true
-};
-let pop_size = 25;
+}
+const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
+const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
+var walls = [];
+var generation_i = 0;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
   imageMode(CENTER);
   rectMode(CORNERS);
-  
-  walls.push(new Boundary(0, 0, width, 0));
-  walls.push(new Boundary(width, 0, width, height));
-  walls.push(new Boundary(width, height, 0, height));
-  walls.push(new Boundary(0, height, 0, 0));
 
   x = 50;
   walls.push(new Boundary(x, x, width - x, x));
@@ -53,47 +48,60 @@ function setup() {
   } 
   */
   
-  // List of all vehicle objects
+  // Population is a list of all vehicle objects
   population = [];
-
-  for (let i=0; i < pop_size; i++) {
+  for (let i=0; i < POPULATION_SIZE; i++) {
     population.push(new Vehicle(100, 100, ml5.neuralNetwork(nn_options)));
   }
 
   yellowCarImg = loadImage("car.png");
   redCarImg = loadImage("redcar.png");
+
+  button = createButton('New Generation');
+  button.position(205, height - 40);
+  button.style("font-family", "Bodoni");
+  button.style("font-size", "20px");
+  button.mousePressed(new_generation);
 }
 
 function new_generation() {
+  // Get list of user chosen vehicles
   chosen_vehicles = [];
-  
-  for (let i=0; i < pop_size; i++) {
+  for (let i=0; i < POPULATION_SIZE; i++) {
     if (population[i].selected) {
       chosen_vehicles.push(population[i]);
-    };
+    }
   }
 
+  // User did not select any vehicles
   if (chosen_vehicles.length == 0) {
     console.log("no cars selected!");
     return;
   }
-
-  // If only one vehicle is selected, copy and mutate its neural network for the
-  // entire population
-  if (chosen_vehicles.length == 1) {
-    for (let i=0; i < pop_size; i++) {
-      let new_nn = chosen_vehicles[0].getNeuralNetwork();
-      new_nn.mutate(0.05);
-      population[i] = (new Vehicle(100, 100, new_nn));
+  // If only one vehicle is selected, copy and mutate its neural network for the entire population
+  // The chosen parent lives unmutated in the next generation (elitism)
+  else if (chosen_vehicles.length == 1) {
+    population[0] = (new Vehicle(100, 100, chosen_vehicles[0].getNeuralNetwork()));
+    for (let i=1; i < POPULATION_SIZE; i++) {
+      let child_nn = chosen_vehicles[0].getNeuralNetwork();
+      child_nn.mutate(MUTATION_RATE);
+      population[i] = (new Vehicle(100, 100, child_nn));
     }
   }
+  // If two or more vehicles are selected, randomly pick two chosen vehicles and cross and mutate their neural networks
+  // Two of the chosen parents live unmutated in the next generation (elitism)
   else {
-    for (let i=0; i < pop_size; i++) {
-      let new_nn = chosen_vehicles[0].getNeuralNetwork().crossover(chosen_vehicles[1].getNeuralNetwork());
-      new_nn.mutate(0.05);
+    population[0] = (new Vehicle(100, 100, chosen_vehicles[0].getNeuralNetwork()));
+    population[1] = (new Vehicle(100, 100, chosen_vehicles[1].getNeuralNetwork()));
+    for (let i=2; i < POPULATION_SIZE; i++) {
+      let parent_1 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
+      let parent_2 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
+      let new_nn = parent_1.getNeuralNetwork().crossover(parent_2.getNeuralNetwork());
+      new_nn.mutate(MUTATION_RATE);
       population[i] = (new Vehicle(100, 100, new_nn));
     }
   }
+  generation_i++;
 }
 
 function draw() {
@@ -103,20 +111,27 @@ function draw() {
     wall.show();
   }
 
-  for (let i=0; i < pop_size; i++) {
+  for (let i=0; i < POPULATION_SIZE; i++) {
     population[i].update();
   }
+
+  textSize(20);
+  fill(255);
+  noStroke();
+  text(`Generation: ${generation_i}`, 25, height - 80);
+  text(`Population: ${POPULATION_SIZE}`, 25, height - 50);
+  text(`Mutation Rate: ${MUTATION_RATE*100}%`, 25, height - 20);
 }
 
 function mouseClicked() {
-  for (let i=0; i < pop_size; i++) {
+  //mouseX, mouseY
+  for (let i=0; i < POPULATION_SIZE; i++) {
     population[i].checkIfMouseOver();
   }
-  //mouseX, mouseY
 }
   
 function keyPressed() {
-  if (key == 'g') {
+  if (key == 'g' || key == 'G') {
     new_generation();
   }
 }
@@ -137,45 +152,36 @@ class Vehicle {
   }
 
   rotateLeft() {
-    this.angle -= turningSpeed;
+    this.angle -= TURNING_SPEED;
     this.action = "left";
   }
 
   rotateRight() {
-    this.angle += turningSpeed;
+    this.angle += TURNING_SPEED;
     this.action = "right";
   }
 
   drive() {
-    // Applies forward force to car
-    // Doesn't allow car to go over max speed
-    if (this.currentSpeed + drivingAccel < maxSpeed) {
-      this.currentSpeed += drivingAccel;
-    }
+    // Applies forward force to car, doesn't allow car to go over max speed
+    this.currentSpeed += DRIVING_ACCEL;
+    if (this.currentSpeed > MAX_SPEED) this.currentSpeed = MAX_SPEED;
     this.action = "drive";
   }
 
   brake() {
-    // Applies braking (backwards) force to car
-    // Doesn't allow car to reverse
-    this.currentSpeed -= brakingAccel;
-    if (this.currentSpeed < brakingAccel) {
-      this.currentSpeed = 0;
-    }
+    // Applies braking (backwards) force to car, doesn't allow car to reverse
+    this.currentSpeed -= BRAKING_ACCEL;
+    if (this.currentSpeed < BRAKING_ACCEL) this.currentSpeed = 0;
     this.action = "brake";
   }
   
-  //nothing() {
-  //  this.action = "nothing";
-  //}
-
   kill() {
     this.alive = false;
   }
 
   checkIfMouseOver() {
     if (dist(this.x, this.y, mouseX, mouseY) < 25) {
-      this.selected = true;
+      this.selected = !this.selected;
     }
   }
 
@@ -201,37 +207,26 @@ class Vehicle {
     }
 
     // Update position of car
-    this.x +=
-      this.currentSpeed * Math.cos((this.angle * Math.PI) / 180);
-    this.y +=
-      this.currentSpeed * Math.sin((this.angle * Math.PI) / 180);
+    this.x += this.currentSpeed * Math.cos((this.angle * Math.PI) / 180);
+    this.y += this.currentSpeed * Math.sin((this.angle * Math.PI) / 180);
 
-    // Don't allow car to go out of bounds
-    //if (this.x < 0) this.x = 0;
-    //if (this.x > width) this.x = width;
-    //if (this.y < 0) this.y = 0;
-    //if (this.y > height) this.y = height;
-    
     // Velocity dampening from friction
-    this.currentSpeed -= frictionAccel;
-    if (this.currentSpeed < frictionAccel) {
-      this.currentSpeed = 0;
-    }
+    this.currentSpeed -= FRICTION_ACCEL;
+    if (this.currentSpeed < FRICTION_ACCEL) this.currentSpeed = 0;
 
+    // Shoot rays from car and calculate the length of each ray from car to the wall
     this.particle.update(this.x, this.y, this.angle);
     let dist_array = this.particle.look(walls);
-    //console.log(dist_array);
-
-    // Collision array [26,  5,  5,  17,  17]
-    // Check if collision
-    if (dist_array[0] < 26 || dist_array[1] < 5 || dist_array[2] < 5 || dist_array[3] < 17 | dist_array[4] < 17 ){
+    
+    // Collision array, car is in collision if any of the values are less than the array: [26,  5,  5,  17,  17]
+    // Check if car is in collision using distance to walls
+    if (dist_array[0] < 26 || dist_array[1] < 5 || dist_array[2] < 5 || dist_array[3] < 17 | dist_array[4] < 17 ) {
       this.kill();
     }
 
-    const results = this.nn.classifySync(dist_array);
-    
+    // Predict action to take using neural network of car
+    let results = this.nn.classifySync(dist_array);
     let predictedAction = results[0].label;
-    //console.log(predictedAction);
 
     switch (predictedAction) {
       case 'left':
@@ -247,6 +242,5 @@ class Vehicle {
         this.brake();
         break;
     }
-    
   }
 }
