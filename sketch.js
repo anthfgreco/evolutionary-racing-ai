@@ -1,21 +1,26 @@
 const TURNING_SPEED = 3;
-const MAX_SPEED = 7;
+const MAX_SPEED = 10;
 const DRIVING_ACCEL = 0.1;
 const BRAKING_ACCEL = 0.1;
 const FRICTION_ACCEL = 0.03;
 const POPULATION_SIZE = 25;
-const MUTATION_RATE = 0.02;
+const MUTATION_RATE = 0.05;
+const CAR_X = 500;
+const CAR_Y = 125;
 const nn_options = {
   inputs: 5,
   outputs: ['left', 'right', 'drive'],
   task: "classification",
   noTraining: true
 }
+let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
 const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
 const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
 var walls = [];
-var generation_i = 0;
+var generation_num = 0;
+var population_alive = POPULATION_SIZE;
 
+// Setup is ran once at the beginning of the page being loaded
 function setup() {
   createCanvas(windowWidth, windowHeight);
   angleMode(DEGREES);
@@ -51,17 +56,57 @@ function setup() {
   // Population is a list of all vehicle objects
   population = [];
   for (let i=0; i < POPULATION_SIZE; i++) {
-    population.push(new Vehicle(100, 100, ml5.neuralNetwork(nn_options)));
+    population.push(new Vehicle(CAR_X, CAR_Y, ml5.neuralNetwork(nn_options)));
   }
 
   yellowCarImg = loadImage("car.png");
   redCarImg = loadImage("redcar.png");
 
-  button = createButton('New Generation');
-  button.position(205, height - 40);
+  stats_padding = 5;
+  stats_x1 = 25;
+  stats_y1 = height-130;
+  stats_x2 = 225;
+  stats_y2 = height-10;
+
+  button = createButton('New Generation (G)');
+  button.position(stats_x2+stats_padding, height-40);
   button.style("font-family", "Bodoni");
   button.style("font-size", "20px");
   button.mousePressed(new_generation);
+}
+
+// Draw is ran every frame
+function draw() {
+  background(50);
+  let total_speed = 0;
+
+  for (let wall of walls) {
+    wall.show();
+  }
+
+  for (let i=0; i < POPULATION_SIZE; i++) {
+    population[i].update();
+    total_speed += population[i].getCurrentSpeed();
+  }
+
+  // Draw box around stats
+  fill(0, 75);
+  noStroke();
+  rect( stats_x1-stats_padding, 
+        stats_y1-stats_padding, 
+        stats_x2+stats_padding, 
+        stats_y2+stats_padding);
+  // Draw stats at bottom left of screen
+  textSize(20);
+  fill(255);
+  textAlign(LEFT);
+  noStroke();
+  let s =   `Generation: ${generation_num}\n` +
+            `Population: ${POPULATION_SIZE}\n` +
+            `Alive: ${population_alive}\n` +
+            `Average Speed: ${round(total_speed/population_alive, 2)}\n` +
+            `Mutation Rate: ${MUTATION_RATE*100}%`
+  text(s, stats_x1, stats_y1, stats_x2, stats_y2);
 }
 
 function new_generation() {
@@ -81,46 +126,28 @@ function new_generation() {
   // If only one vehicle is selected, copy and mutate its neural network for the entire population
   // The chosen parent lives unmutated in the next generation (elitism)
   else if (chosen_vehicles.length == 1) {
-    population[0] = (new Vehicle(100, 100, chosen_vehicles[0].getNeuralNetwork()));
+    population[0] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[0].getNeuralNetwork()));
     for (let i=1; i < POPULATION_SIZE; i++) {
       let child_nn = chosen_vehicles[0].getNeuralNetwork();
       child_nn.mutate(MUTATION_RATE);
-      population[i] = (new Vehicle(100, 100, child_nn));
+      population[i] = (new Vehicle(CAR_X, CAR_Y, child_nn));
     }
   }
   // If two or more vehicles are selected, randomly pick two chosen vehicles and cross and mutate their neural networks
   // Two of the chosen parents live unmutated in the next generation (elitism)
   else {
-    population[0] = (new Vehicle(100, 100, chosen_vehicles[0].getNeuralNetwork()));
-    population[1] = (new Vehicle(100, 100, chosen_vehicles[1].getNeuralNetwork()));
+    population[0] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[0].getNeuralNetwork()));
+    population[1] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[1].getNeuralNetwork()));
     for (let i=2; i < POPULATION_SIZE; i++) {
       let parent_1 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
       let parent_2 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
       let new_nn = parent_1.getNeuralNetwork().crossover(parent_2.getNeuralNetwork());
       new_nn.mutate(MUTATION_RATE);
-      population[i] = (new Vehicle(100, 100, new_nn));
+      population[i] = (new Vehicle(CAR_X, CAR_Y, new_nn));
     }
   }
-  generation_i++;
-}
-
-function draw() {
-  background(50);
-
-  for (let wall of walls) {
-    wall.show();
-  }
-
-  for (let i=0; i < POPULATION_SIZE; i++) {
-    population[i].update();
-  }
-
-  textSize(20);
-  fill(255);
-  noStroke();
-  text(`Generation: ${generation_i}`, 25, height - 80);
-  text(`Population: ${POPULATION_SIZE}`, 25, height - 50);
-  text(`Mutation Rate: ${MUTATION_RATE*100}%`, 25, height - 20);
+  generation_num++;
+  population_alive = POPULATION_SIZE;
 }
 
 function mouseClicked() {
@@ -177,6 +204,7 @@ class Vehicle {
   
   kill() {
     this.alive = false;
+    this.currentSpeed = 0;
   }
 
   checkIfMouseOver() {
@@ -187,6 +215,10 @@ class Vehicle {
 
   getNeuralNetwork() {
     return this.nn.copy();
+  }
+
+  getCurrentSpeed() {
+    return this.currentSpeed;
   }
 
   update() {
@@ -222,6 +254,7 @@ class Vehicle {
     // Check if car is in collision using distance to walls
     if (dist_array[0] < 26 || dist_array[1] < 5 || dist_array[2] < 5 || dist_array[3] < 17 | dist_array[4] < 17 ) {
       this.kill();
+      population_alive--;
     }
 
     // Predict action to take using neural network of car
