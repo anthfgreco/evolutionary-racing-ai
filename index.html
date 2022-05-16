@@ -1,4 +1,6 @@
-<!DOCTYPE html><html lang="en"><head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
     <!-- p5js -->
     <script src="lib/p5.js"></script>
     <script src="lib/p5.sound.min.js"></script>
@@ -6,15 +8,30 @@
     <script src="lib/ml5.min.js"></script>
     <link rel="stylesheet" type="text/css" href="style.css">
     <meta charset="utf-8">
-
-  </head>
-  <body>
-    <main>
-    </main>
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css" />
+    <!-- UIkit JS -->
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/js/uikit-icons.min.js"></script>
+    <!-- JavaScript files -->
     <script src="sketch.js"></script>
     <script src="Boundary.js"></script>
     <script src="Ray.js"></script>
     <script src="Particle.js"></script>
-  
+  </head>
 
-</body></html>
+  <body>
+    <div id="top-nav">
+      <a onclick="initialize_random_population()">Initialize Random Population (I)</a>
+      <a onclick="new_generation()">New Generation (G)</a>
+      <a onclick="save_selected_vehicle()">Save Selected (S)</a>
+      <a onclick="initialize_from_saved()">Initialize From Saved</a>
+      <a onclick="race_saved_vehicle()">Race Saved Vehicle (R)</a>
+      <a onclick="myFunction()">Help</a>
+    </div>
+    <div id="sketch-holder">
+      <!-- Our sketch will go here! -->
+    </div>
+  </body>
+
+</html>

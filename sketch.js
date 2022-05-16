@@ -1,9 +1,9 @@
 const TURNING_SPEED = 3;
-const MAX_SPEED = 10;
+const MAX_SPEED = 9;
 const DRIVING_ACCEL = 0.1;
 const BRAKING_ACCEL = 0.1;
 const FRICTION_ACCEL = 0.03;
-const POPULATION_SIZE = 25;
+const POPULATION_SIZE = 10;//25;
 const MUTATION_RATE = 0.05;
 const CAR_X = 500;
 const CAR_Y = 125;
@@ -13,16 +13,20 @@ const nn_options = {
   task: "classification",
   noTraining: true
 }
-let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
+var stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
 const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
 const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
+var state = "player-drive";
 var walls = [];
 var generation_num = 0;
 var population_alive = POPULATION_SIZE;
+var saved_nn;
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  var canvas = createCanvas(  document.getElementById('sketch-holder').offsetWidth, 
+                              document.getElementById('sketch-holder').offsetHeight);
+  canvas.parent('sketch-holder');
   angleMode(DEGREES);
   imageMode(CENTER);
   rectMode(CORNERS);
@@ -39,6 +43,16 @@ function setup() {
   walls.push(new Boundary(width - x, x, width - x, height - x));
   walls.push(new Boundary(x, x, x, height - x));
   
+  yellowCarImg = loadImage("yellowcar.png");
+  redCarImg = loadImage("redcar.png");
+  blueCarImg = loadImage("bluecar.png");
+
+  stats_padding = 5;
+  stats_x1 = 25;
+  stats_y1 = height-130;
+  stats_x2 = 225;
+  stats_y2 = height-10;
+
   /*
   for (let i=0; i < points.length; i+=1) {
     if (i != points.length - 1) {
@@ -55,72 +69,131 @@ function setup() {
   
   // Population is a list of all vehicle objects
   population = [];
-  for (let i=0; i < POPULATION_SIZE; i++) {
-    population.push(new Vehicle(CAR_X, CAR_Y, ml5.neuralNetwork(nn_options)));
-  }
 
-  yellowCarImg = loadImage("car.png");
-  redCarImg = loadImage("redcar.png");
-
-  stats_padding = 5;
-  stats_x1 = 25;
-  stats_y1 = height-130;
-  stats_x2 = 225;
-  stats_y2 = height-10;
-
-  button = createButton('New Generation (G)');
-  button.position(stats_x2+stats_padding, height-40);
-  button.style("font-family", "Bodoni");
-  button.style("font-size", "20px");
-  button.mousePressed(new_generation);
+  player = new Vehicle(CAR_X, CAR_Y);
 }
 
 // Draw is ran every frame
 function draw() {
   background(50);
-  let total_speed = 0;
 
   for (let wall of walls) {
     wall.show();
   }
 
-  for (let i=0; i < POPULATION_SIZE; i++) {
-    population[i].update();
-    total_speed += population[i].getCurrentSpeed();
+  if (state == "player-drive") {
+    if (keyIsDown(LEFT_ARROW)) player.rotateLeft();
+    else if (keyIsDown(RIGHT_ARROW)) player.rotateRight();
+    else if (keyIsDown(UP_ARROW)) player.drive();
+    else if (keyIsDown(DOWN_ARROW)) player.brake();
+    player.update();
   }
 
-  // Draw box around stats
-  fill(0, 75);
-  noStroke();
-  rect( stats_x1-stats_padding, 
-        stats_y1-stats_padding, 
-        stats_x2+stats_padding, 
-        stats_y2+stats_padding);
-  // Draw stats at bottom left of screen
-  textSize(20);
-  fill(255);
-  textAlign(LEFT);
-  noStroke();
-  let s =   `Generation: ${generation_num}\n` +
-            `Population: ${POPULATION_SIZE}\n` +
-            `Alive: ${population_alive}\n` +
-            `Average Speed: ${round(total_speed/population_alive, 2)}\n` +
-            `Mutation Rate: ${MUTATION_RATE*100}%`
-  text(s, stats_x1, stats_y1, stats_x2, stats_y2);
+  if (state == "generation_training") {
+    let total_speed = 0;
+    for (let i=0; i < POPULATION_SIZE; i++) {
+      population[i].update();
+      total_speed += population[i].getCurrentSpeed();
+    }
+
+    // Draw box around stats
+    fill(0, 75);
+    noStroke();
+    rect( stats_x1-stats_padding, 
+          stats_y1-stats_padding, 
+          stats_x2+stats_padding, 
+          stats_y2+stats_padding);
+    // Draw stats at bottom left of screen
+    if (population_alive == 0) average_speed = 0;
+    else average_speed = total_speed/population_alive;
+
+    textSize(20);
+    fill(255);
+    textAlign(LEFT);
+    noStroke();
+    let s =   `Generation: ${generation_num}\n` +
+              `Population: ${POPULATION_SIZE}\n` +
+              `Alive: ${population_alive}\n` +
+              `Average Speed: ${round(average_speed, 2)}\n` +
+              `Mutation Rate: ${MUTATION_RATE*100}%`
+    text(s, stats_x1, stats_y1, stats_x2, stats_y2);
+  }
+
+  if (state == "race") {
+    if (keyIsDown(LEFT_ARROW)) player.rotateLeft();
+    else if (keyIsDown(RIGHT_ARROW)) player.rotateRight();
+    else if (keyIsDown(UP_ARROW)) player.drive();
+    else if (keyIsDown(DOWN_ARROW)) player.brake();
+    population[0].update();
+    player.update();
+  }
+}
+
+function initialize_random_population() {
+  state = "generation_training";
+  population = [];
+  for (let i=0; i < POPULATION_SIZE; i++) {
+    population.push(new Vehicle(CAR_X, CAR_Y, ml5.neuralNetwork(nn_options)));
+  }
+  population_alive = POPULATION_SIZE;
+}
+
+function initialize_from_saved() {
+  if (!saved_nn) {
+    console.log("No saved vehicle!");
+  }
+  else {
+    state = "generation_training";
+    population = [];
+    for (let i=0; i < POPULATION_SIZE; i++) {
+      let child_nn = saved_nn.copy();
+      child_nn.mutate(MUTATION_RATE);
+      population.push(new Vehicle(CAR_X, CAR_Y, child_nn));
+    }
+    population_alive = POPULATION_SIZE;
+  }
+}
+
+function race_saved_vehicle() {
+  if (!saved_nn) {
+    console.log("No saved vehicle!");
+  }
+  else {
+    state = "race";
+    population = [];
+    player = new Vehicle(CAR_X, CAR_Y);
+    population.push(new Vehicle(CAR_X, CAR_Y, saved_nn));
+    population_alive = 1;
+  }
+}
+
+function get_chosen_vehicles() {
+  // Get list of user selected vehicles
+  chosen_vehicles = [];
+  if (state == "player-drive") {
+    console.log("Initialize population first!");
+  }
+  if (state == "generation_training") {
+    for (let i=0; i < POPULATION_SIZE; i++) {
+      if (population[i].selected) {
+        chosen_vehicles.push(population[i]);
+      }
+    }
+  }
+  return chosen_vehicles;
 }
 
 function new_generation() {
-  // Get list of user chosen vehicles
-  chosen_vehicles = [];
-  for (let i=0; i < POPULATION_SIZE; i++) {
-    if (population[i].selected) {
-      chosen_vehicles.push(population[i]);
-    }
+  if (state == "player-drive") {
+    console.log("Initialize population first!");
+    return;
   }
+
+  chosen_vehicles = get_chosen_vehicles();
 
   // User did not select any vehicles
   if (chosen_vehicles.length == 0) {
-    console.log("no cars selected!");
+    console.log("No cars selected!");
     return;
   }
   // If only one vehicle is selected, copy and mutate its neural network for the entire population
@@ -150,16 +223,45 @@ function new_generation() {
   population_alive = POPULATION_SIZE;
 }
 
-function mouseClicked() {
-  //mouseX, mouseY
-  for (let i=0; i < POPULATION_SIZE; i++) {
-    population[i].checkIfMouseOver();
+function save_selected_vehicle() {
+  if (state == "player-drive") {
+    console.log("Initialize population first!");
+  }
+
+  if (state == "generation_training") {
+    chosen_vehicles = get_chosen_vehicles();
+    
+    if (chosen_vehicles.length == 0) console.log("No vehicle selected!")
+    else {
+      saved_nn = chosen_vehicles[0].getNeuralNetwork();
+    }
   }
 }
-  
+
+function mouseClicked() {
+  //mouseX, mouseY
+  if (state == "generation_training") {
+    for (let i=0; i < POPULATION_SIZE; i++) {
+      population[i].checkIfMouseOver();
+    }
+  }
+}
+ 
 function keyPressed() {
-  if (key == 'g' || key == 'G') {
-    new_generation();
+  key = key.toUpperCase();
+  switch (key) {
+    case 'I':
+      initialize_random_population();
+      break;
+    case 'G':
+      new_generation();
+      break;
+    case 'S':
+      save_selected_vehicle();
+      break;
+    case 'R':
+      race_saved_vehicle();
+      break;
   }
 }
 
@@ -222,16 +324,20 @@ class Vehicle {
   }
 
   update() {
+    let dist_array;
+    // Shoot rays from car and calculate the length of each ray from car to the wall
+    if (this.alive) {
+      this.particle.update(this.x, this.y, this.angle);
+      dist_array = this.particle.look(walls);
+    }
+
     // Draw car
     push();
     translate(this.x, this.y);
     rotate(this.angle);
-    if (this.selected) {
-      image(redCarImg, 0, 0);
-    }
-    else {
-      image(yellowCarImg, 0, 0);
-    }
+    if (this.selected)                          image(redCarImg, 0, 0);
+    else if (!this.selected && this.nn == null) image(blueCarImg, 0, 0);
+    else                                        image(yellowCarImg, 0, 0);
     pop();
 
     if (this.alive == false) {
@@ -245,10 +351,6 @@ class Vehicle {
     // Velocity dampening from friction
     this.currentSpeed -= FRICTION_ACCEL;
     if (this.currentSpeed < FRICTION_ACCEL) this.currentSpeed = 0;
-
-    // Shoot rays from car and calculate the length of each ray from car to the wall
-    this.particle.update(this.x, this.y, this.angle);
-    let dist_array = this.particle.look(walls);
     
     // Collision array, car is in collision if any of the values are less than the array: [26,  5,  5,  17,  17]
     // Check if car is in collision using distance to walls
@@ -257,23 +359,25 @@ class Vehicle {
       population_alive--;
     }
 
-    // Predict action to take using neural network of car
-    let results = this.nn.classifySync(dist_array);
-    let predictedAction = results[0].label;
+    if (this.nn){
+      // Predict action to take using neural network of car
+      let results = this.nn.classifySync(dist_array);
+      let predictedAction = results[0].label;
 
-    switch (predictedAction) {
-      case 'left':
-        this.rotateLeft();
-        break;
-      case 'right':
-        this.rotateRight();
-        break;
-      case 'drive':    
-        this.drive();
-        break;
-      case 'brake':
-        this.brake();
-        break;
+      switch (predictedAction) {
+        case 'left':
+          this.rotateLeft();
+          break;
+        case 'right':
+          this.rotateRight();
+          break;
+        case 'drive':    
+          this.drive();
+          break;
+        case 'brake':
+          this.brake();
+          break;
+      }
     }
   }
 }
