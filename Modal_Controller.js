@@ -17,19 +17,19 @@ $(function() {
 
         update_page_number(page_track, pages.length);
 
-        // Next button is clicked
+        // "Next" button is clicked
         $(next_button).on("click", function() {
-            // Show previous button on second page
+            // Show "Previous" button on second page
             if (page_track == 0) {
                 $(prev_button).show();
             }
             
-            // Change text of next button to "Finish" on last page
+            // Change text of "Next" button to "Finish" on last page
             if (page_track == pages.length-2) {
                 $(next_button).text("Finish");
             }
 
-            // If "Finish" is pressed on last page, close modal
+            // If "Finish" button is pressed on last page, close modal
             if (page_track == pages.length-1) {
                 modal.hide(); 
             }
@@ -44,19 +44,19 @@ $(function() {
             update_page_number(page_track, pages.length);
         });
 
-        // Previous button is clicked
+        // "Previous" button is clicked
         $(prev_button).on("click", function() {
-            // Hide previous button on first page
+            // Hide "Previous" button on first page
             if (page_track == 1) {
                 $(prev_button).hide();
             }
 
-            // Change text of next button from "Finish" to "Next" going from last to second last page
+            // Change text of "Next" button from "Finish" to "Next" going from last to second last page
             if (page_track == pages.length-1) {
                 $(next_button).text("Next");
             }
 
-            // If "Previous" is pressed, go to previous page
+            // If "Previous" button is pressed, go to previous page
             if (page_track > 0) {
                 page_track--;
                 pages.hide();

@@ -13,9 +13,9 @@ const nn_options = {
   task: "classification",
   noTraining: true
 }
+//const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
+//const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
 var stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
-const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
-const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
 var state = "player-drive";
 var walls;
 var generation_num = 0;
@@ -24,8 +24,7 @@ var saved_nn;
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  var canvas = createCanvas(  windowWidth, 
-                              document.getElementById('sketch-holder').offsetHeight);
+  var canvas = createCanvas(windowWidth, document.getElementById('sketch-holder').offsetHeight);
   canvas.parent('sketch-holder');
   angleMode(DEGREES);
   imageMode(CENTER);
@@ -106,19 +105,19 @@ function draw() {
           stats_y1-stats_padding, 
           stats_x2+stats_padding, 
           stats_y2+stats_padding);
+
     // Draw stats at bottom left of screen
     if (population_alive == 0) average_speed = 0;
     else average_speed = total_speed/population_alive;
-
     textSize(20);
     fill(255);
     textAlign(LEFT);
     noStroke();
-    let s =   `Generation: ${generation_num}\n` +
-              `Population: ${POPULATION_SIZE}\n` +
-              `Alive: ${population_alive}\n` +
-              `Average Speed: ${round(average_speed, 2)}\n` +
-              `Mutation Rate: ${MUTATION_RATE*100}%`
+    let s = `Generation: ${generation_num}\n` +
+            `Population: ${POPULATION_SIZE}\n` +
+            `Alive: ${population_alive}\n` +
+            `Average Speed: ${round(average_speed, 2)}\n` +
+            `Mutation Rate: ${MUTATION_RATE*100}%`
     text(s, stats_x1, stats_y1, stats_x2, stats_y2);
   }
 
@@ -236,7 +235,7 @@ function save_selected_vehicle() {
     console.log("Initialize population first!");
   }
 
-  if (state == "generation_training") {
+  if (state == "generation_training" || state == "race") {
     chosen_vehicles = get_chosen_vehicles();
     
     if (chosen_vehicles.length == 0) console.log("No vehicle selected!")
@@ -321,7 +320,7 @@ class Vehicle {
   }
 
   checkIfMouseOver() {
-    if (dist(this.x, this.y, mouseX, mouseY) < 25) {
+    if (dist(this.x, this.y, mouseX, mouseY) < 35) {
       this.selected = !this.selected;
     }
   }
