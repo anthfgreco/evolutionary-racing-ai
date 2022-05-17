@@ -1,5 +1,5 @@
 :root {
-  --nav-bar-size: 75px;
+  --nav-bar-size: 60px;
 }
 
 * {
@@ -30,11 +30,21 @@ canvas {
   justify-content: space-evenly;
 }
 
+#nav-title {
+  color: #ffffff !important;
+  font-size: 22px;
+  font-weight: 500;
+  margin: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 a {
   color: #ffffff !important;
   text-decoration-line: none !important;
-  padding: 10px;
-  margin: 15px;
+  margin: 5px;
+  padding: 5px 20px 5px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,24 +62,30 @@ a:hover {
   height: calc(100% - var(--nav-bar-size));
 }
 
-#button-div {
-  width: 100%;
-}
-
-.button-left {
+.modal-button-left {
   float: left;
 }
 
-.button-right {
+.modal-button-right {
   float: right;
+  margin-left: 5px;
 }
 
 .uk-modal-title {
   text-align: center;
 }
 
-a {
-  padding: 5px 20px 5px 20px;
+#page_number_div {
+  position: fixed;
+  float: right;
+  right: 0;
+  top: 0;
+  margin: 20px;
+}
+
+img {
+  display: block;
+  margin: 0px auto 15px auto;
 }
 
 .disableSelection{

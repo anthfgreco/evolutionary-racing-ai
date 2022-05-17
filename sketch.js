@@ -17,7 +17,7 @@ var stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
 const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
 const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
 var state = "player-drive";
-var walls = [];
+var walls;
 var generation_num = 0;
 var population_alive = POPULATION_SIZE;
 var saved_nn;
@@ -31,6 +31,7 @@ function setup() {
   imageMode(CENTER);
   rectMode(CORNERS);
 
+  walls = [];
   // Draw outer walls
   x = 50;
   walls.push(new Boundary(x, x, width - x, x));
@@ -45,9 +46,9 @@ function setup() {
   walls.push(new Boundary(width - x, x, width - x, height - x));
   walls.push(new Boundary(x, x, x, height - x));
   
-  yellowCarImg = loadImage("yellowcar.png");
-  redCarImg = loadImage("redcar.png");
-  blueCarImg = loadImage("bluecar.png");
+  yellowCarImg =  loadImage("img/yellowcar.png");
+  redCarImg =     loadImage("img/redcar.png");
+  blueCarImg =    loadImage("img/bluecar.png");
 
   stats_padding = 5;
   stats_x1 = 25;
@@ -140,6 +141,8 @@ function initialize_random_population() {
   population_alive = POPULATION_SIZE;
 }
 
+// I didn't realize you can just use the new generation function
+// TODO: Add an already trained model and use this function to load it
 function initialize_from_saved() {
   if (!saved_nn) {
     console.log("No saved vehicle!");
@@ -181,6 +184,9 @@ function get_chosen_vehicles() {
         chosen_vehicles.push(population[i]);
       }
     }
+  }
+  if (state == "race") {
+    if (population[0].selected) chosen_vehicles.push(population[0]);
   }
   return chosen_vehicles;
 }
@@ -241,11 +247,14 @@ function save_selected_vehicle() {
 }
 
 function mouseClicked() {
-  //mouseX, mouseY
   if (state == "generation_training") {
     for (let i=0; i < POPULATION_SIZE; i++) {
       population[i].checkIfMouseOver();
     }
+  }
+
+  if (state == "race") {
+    population[0].checkIfMouseOver();
   }
 }
  
