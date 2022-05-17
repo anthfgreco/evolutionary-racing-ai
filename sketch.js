@@ -3,7 +3,7 @@ const MAX_SPEED = 9;
 const DRIVING_ACCEL = 0.1;
 const BRAKING_ACCEL = 0.1;
 const FRICTION_ACCEL = 0.03;
-const POPULATION_SIZE = 10;//25;
+const POPULATION_SIZE = 10; //25;
 const MUTATION_RATE = 0.05;
 const CAR_X = 500;
 const CAR_Y = 125;
@@ -24,19 +24,21 @@ var saved_nn;
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  var canvas = createCanvas(  document.getElementById('sketch-holder').offsetWidth, 
+  var canvas = createCanvas(  windowWidth, 
                               document.getElementById('sketch-holder').offsetHeight);
   canvas.parent('sketch-holder');
   angleMode(DEGREES);
   imageMode(CENTER);
   rectMode(CORNERS);
 
+  // Draw outer walls
   x = 50;
   walls.push(new Boundary(x, x, width - x, x));
   walls.push(new Boundary(x, height - x, width - x, height - x));
   walls.push(new Boundary(width - x, x, width - x, height - x));
   walls.push(new Boundary(x, x, x, height - x));
 
+  // Draw inner walls
   x = 175;
   walls.push(new Boundary(x, x, width - x, x));
   walls.push(new Boundary(x, height - x, width - x, height - x));

@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- JQuery -->
+    <script src="lib/jquery-3.6.0.min.js"></script>
     <!-- p5js -->
     <script src="lib/p5.js"></script>
-    <script src="lib/p5.sound.min.js"></script>
     <!-- ml5 -->
     <script src="lib/ml5.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <meta charset="utf-8">
     <!-- UIkit CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.14.1/dist/css/uikit.min.css" />
     <!-- UIkit JS -->
@@ -18,16 +17,46 @@
     <script src="Boundary.js"></script>
     <script src="Ray.js"></script>
     <script src="Particle.js"></script>
+    <script src="Modal_Controller.js"></script>
+    <!-- other -->
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8">
   </head>
 
   <body>
-    <div id="top-nav">
+    <div id="top-nav" class="disableSelection">
       <a onclick="initialize_random_population()">Initialize Random Population (I)</a>
       <a onclick="new_generation()">New Generation (G)</a>
       <a onclick="save_selected_vehicle()">Save Selected (S)</a>
       <a onclick="initialize_from_saved()">Initialize From Saved</a>
       <a onclick="race_saved_vehicle()">Race Saved Vehicle (R)</a>
-      <a onclick="myFunction()">Help</a>
+      <a href="#modal" uk-toggle>Help</a>
+    </div>
+    <!-- This is the modal -->
+    <div id="modal" uk-modal>
+      <div class="uk-modal-dialog uk-modal-body">
+        <div class="modal-split">
+          <h2 class="uk-modal-title">Welcome to Self-Driving Car Evolution</h2>
+          <p>This short tutorial will walk you through all of the features of this application.</p>
+          <p>If you want to dive right in, feel free to press the "Skip Tutorial" button below. Otherwise, press "Next"!</p>
+        </div>
+        <div class="modal-split">
+          <h2 class="uk-modal-title">What is a genetic algorithm?</h2>
+          <p>TEST PARAGRAPH</p>
+          <p>TEST PARAGRAPH</p>
+        </div>
+        <div id="button-div" class="disableSelection">
+          <button class="uk-button uk-button-primary uk-modal-close button-left" 
+                  type="button"
+                  id="skip-tutorial-button">Skip Tutorial</button>
+          <button class="uk-button uk-button-primary button-right" 
+                  type="button"
+                  id="next-button">Next</button>     
+          <button class="uk-button uk-button-default button-right" 
+                  type="button"
+                  id="previous-button">Previous</button>   
+        </div>  
+      </div>
     </div>
     <div id="sketch-holder">
       <!-- Our sketch will go here! -->
