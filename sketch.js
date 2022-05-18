@@ -155,6 +155,7 @@ function draw() {
 }
 
 function initialize_random_population() {
+  update_alert("");
   state = "generation_training";
   population = [];
   for (let i=0; i < POPULATION_SIZE; i++) {
@@ -168,8 +169,10 @@ function initialize_random_population() {
 function initialize_from_saved() {
   if (!saved_nn) {
     console.log("No saved vehicle!");
+    update_alert("No saved vehicle!");
   }
   else {
+    update_alert("");
     state = "generation_training";
     population = [];
     for (let i=0; i < POPULATION_SIZE; i++) {
@@ -184,6 +187,7 @@ function initialize_from_saved() {
 function race_saved_vehicle() {
   if (!saved_nn) {
     console.log("No saved vehicle!");
+    update_alert("No saved vehicle!");
   }
   else {
     state = "race";
@@ -197,8 +201,10 @@ function race_saved_vehicle() {
 function load_trained_model() {
   if (!trained_nn) {
     console.log("Trained model files missing!");
+    update_alert("Trained model files missing!");
   }
   else {
+    update_alert("");
     state = "race";
     population = [];
     player = new Vehicle(STARTING_X, STARTING_Y);
@@ -213,6 +219,7 @@ function get_chosen_vehicles() {
   chosen_vehicles = [];
   if (state == "player-drive") {
     console.log("Initialize population first!");
+    update_alert("Initialize population first!");
   }
   if (state == "generation_training") {
     for (let i=0; i < POPULATION_SIZE; i++) {
@@ -230,6 +237,7 @@ function get_chosen_vehicles() {
 function new_generation() {
   if (state == "player-drive") {
     console.log("Initialize population first!");
+    update_alert("Initialize a population first!");
     return;
   }
 
@@ -238,6 +246,7 @@ function new_generation() {
   // User did not select any vehicles
   if (chosen_vehicles.length == 0) {
     console.log("No cars selected!");
+    update_alert("Select the best performing cars first!");
     return;
   }
   // If only one vehicle is selected, copy and mutate its neural network for the entire population
@@ -263,6 +272,7 @@ function new_generation() {
       population[i] = (new Vehicle(STARTING_X, STARTING_Y, new_nn));
     }
   }
+  update_alert("");
   state = "generation_training";
   generation_num++;
   population_alive = POPULATION_SIZE;
@@ -271,14 +281,19 @@ function new_generation() {
 function save_selected_vehicle() {
   if (state == "player-drive") {
     console.log("Initialize population first!");
+    update_alert("A car isn't selected!");
   }
 
   if (state == "generation_training" || state == "race") {
     chosen_vehicles = get_chosen_vehicles();
     
-    if (chosen_vehicles.length == 0) console.log("No vehicle selected!")
+    if (chosen_vehicles.length == 0) {
+      console.log("No vehicle selected!");
+      update_alert("A car isn't selected!");
+    }
     else {
       saved_nn = chosen_vehicles[0].getNeuralNetwork();
+      update_alert("");
       //saved_nn.save();
     }
   }
@@ -315,6 +330,10 @@ function keyPressed() {
       load_trained_model();
       break;
   }
+}
+
+function update_alert(text) {
+  $("#alert-div").text(text);
 }
 
 // Class for vehicle display and control
