@@ -3,16 +3,38 @@ const MAX_SPEED = 9;
 const DRIVING_ACCEL = 0.1;
 const BRAKING_ACCEL = 0.1;
 const FRICTION_ACCEL = 0.03;
-const POPULATION_SIZE = 10; //25;
-const MUTATION_RATE = 0.05;
-const CAR_X = 500;
-const CAR_Y = 125;
+const POPULATION_SIZE = 10;//15;
+const MUTATION_RATE = 0.02;
+const STARTING_X = 500;
+const STARTING_Y = 125;
 const nn_options = {
   inputs: 5,
   outputs: ['left', 'right', 'drive'],
   task: "classification",
+  layers: [
+    {
+      type: 'dense',
+      activation: 'relu',
+    },
+    {
+      type: 'dense',
+      units: 16,
+      activation: 'relu',
+    },
+    {
+      type: 'dense',
+      activation: 'softmax',
+    },
+  ],
   noTraining: true
 }
+const trained_nn_details = {
+  model:    'trainedModel/model.json',
+  metadata: 'trainedModel/model_meta.json',
+  weights:  'trainedModel/model.weights.bin'
+}
+const trained_nn = ml5.neuralNetwork(nn_options);
+trained_nn.load(trained_nn_details);
 //const points = [[25, 35], [402, 49],[645, 49],[726, 219],[949, 70],[1219, 78],[1254, 855],[865, 847],[872, 704],[1011, 626],[849, 510],[608, 673],[579, 881],[74, 886], [25, 35]];
 //const points2 = [[136, 161],[539, 168],[703, 341],[983, 194],[1118, 196],[1132, 755],[1027, 755],[1103, 631],[1045, 484],[841, 358], [501, 540], [443, 780], [184, 782], [139, 161]];
 var stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
@@ -49,11 +71,12 @@ function setup() {
   redCarImg =     loadImage("img/redcar.png");
   blueCarImg =    loadImage("img/bluecar.png");
 
-  stats_padding = 5;
+  // Dimensions for stats box when training
+  stats_padding = 10;
   stats_x1 = 25;
-  stats_y1 = height-130;
+  stats_y1 = height-140;
   stats_x2 = 225;
-  stats_y2 = height-10;
+  stats_y2 = height-20;
 
   /*
   for (let i=0; i < points.length; i+=1) {
@@ -72,7 +95,7 @@ function setup() {
   // Population is a list of all vehicle objects
   population = [];
 
-  player = new Vehicle(CAR_X, CAR_Y);
+  player = new Vehicle(STARTING_X, STARTING_Y);
 }
 
 // Draw is ran every frame
@@ -135,7 +158,7 @@ function initialize_random_population() {
   state = "generation_training";
   population = [];
   for (let i=0; i < POPULATION_SIZE; i++) {
-    population.push(new Vehicle(CAR_X, CAR_Y, ml5.neuralNetwork(nn_options)));
+    population.push(new Vehicle(STARTING_X, STARTING_Y, ml5.neuralNetwork(nn_options)));
   }
   population_alive = POPULATION_SIZE;
 }
@@ -152,7 +175,7 @@ function initialize_from_saved() {
     for (let i=0; i < POPULATION_SIZE; i++) {
       let child_nn = saved_nn.copy();
       child_nn.mutate(MUTATION_RATE);
-      population.push(new Vehicle(CAR_X, CAR_Y, child_nn));
+      population.push(new Vehicle(STARTING_X, STARTING_Y, child_nn));
     }
     population_alive = POPULATION_SIZE;
   }
@@ -165,8 +188,22 @@ function race_saved_vehicle() {
   else {
     state = "race";
     population = [];
-    player = new Vehicle(CAR_X, CAR_Y);
-    population.push(new Vehicle(CAR_X, CAR_Y, saved_nn));
+    player = new Vehicle(STARTING_X, STARTING_Y);
+    population.push(new Vehicle(STARTING_X, STARTING_Y, saved_nn));
+    population_alive = 1;
+  }
+}
+
+function load_trained_model() {
+  if (!trained_nn) {
+    console.log("Trained model files missing!");
+  }
+  else {
+    state = "race";
+    population = [];
+    player = new Vehicle(STARTING_X, STARTING_Y);
+    population.push(new Vehicle(STARTING_X, STARTING_Y, trained_nn));
+    saved_nn = trained_nn;
     population_alive = 1;
   }
 }
@@ -206,26 +243,27 @@ function new_generation() {
   // If only one vehicle is selected, copy and mutate its neural network for the entire population
   // The chosen parent lives unmutated in the next generation (elitism)
   else if (chosen_vehicles.length == 1) {
-    population[0] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[0].getNeuralNetwork()));
+    population[0] = (new Vehicle(STARTING_X, STARTING_Y, chosen_vehicles[0].getNeuralNetwork()));
     for (let i=1; i < POPULATION_SIZE; i++) {
       let child_nn = chosen_vehicles[0].getNeuralNetwork();
       child_nn.mutate(MUTATION_RATE);
-      population[i] = (new Vehicle(CAR_X, CAR_Y, child_nn));
+      population[i] = (new Vehicle(STARTING_X, STARTING_Y, child_nn));
     }
   }
   // If two or more vehicles are selected, randomly pick two chosen vehicles and cross and mutate their neural networks
   // Two of the chosen parents live unmutated in the next generation (elitism)
   else {
-    population[0] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[0].getNeuralNetwork()));
-    population[1] = (new Vehicle(CAR_X, CAR_Y, chosen_vehicles[1].getNeuralNetwork()));
+    population[0] = (new Vehicle(STARTING_X, STARTING_Y, chosen_vehicles[0].getNeuralNetwork()));
+    population[1] = (new Vehicle(STARTING_X, STARTING_Y, chosen_vehicles[1].getNeuralNetwork()));
     for (let i=2; i < POPULATION_SIZE; i++) {
       let parent_1 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
       let parent_2 = chosen_vehicles[Math.floor(Math.random()*chosen_vehicles.length)];
       let new_nn = parent_1.getNeuralNetwork().crossover(parent_2.getNeuralNetwork());
       new_nn.mutate(MUTATION_RATE);
-      population[i] = (new Vehicle(CAR_X, CAR_Y, new_nn));
+      population[i] = (new Vehicle(STARTING_X, STARTING_Y, new_nn));
     }
   }
+  state = "generation_training";
   generation_num++;
   population_alive = POPULATION_SIZE;
 }
@@ -241,6 +279,7 @@ function save_selected_vehicle() {
     if (chosen_vehicles.length == 0) console.log("No vehicle selected!")
     else {
       saved_nn = chosen_vehicles[0].getNeuralNetwork();
+      //saved_nn.save();
     }
   }
 }
@@ -271,6 +310,9 @@ function keyPressed() {
       break;
     case 'R':
       race_saved_vehicle();
+      break;
+    case 'L':
+      load_trained_model();
       break;
   }
 }
