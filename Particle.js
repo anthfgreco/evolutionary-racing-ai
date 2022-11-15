@@ -16,11 +16,11 @@ class Particle {
     this.dist_array = [0, 0, 0, 0, 0];
     let i = 0;
 
-    this.rays[0] = (new Ray(this.pos, radians(this.angle)));
-    this.rays[1] = (new Ray(this.pos, radians(this.angle + 90)));
-    this.rays[2] = (new Ray(this.pos, radians(this.angle - 90)));
-    this.rays[3] = (new Ray(this.pos, radians(this.angle + 45)));
-    this.rays[4] = (new Ray(this.pos, radians(this.angle - 45)));
+    this.rays[0] = new Ray(this.pos, radians(this.angle));
+    this.rays[1] = new Ray(this.pos, radians(this.angle + 90));
+    this.rays[2] = new Ray(this.pos, radians(this.angle - 90));
+    this.rays[3] = new Ray(this.pos, radians(this.angle + 45));
+    this.rays[4] = new Ray(this.pos, radians(this.angle - 45));
 
     for (let ray of this.rays) {
       let closest = null;
@@ -41,9 +41,9 @@ class Particle {
         stroke(255, 100);
         strokeWeight(4);
         line(this.pos.x, this.pos.y, closest.x, closest.y);
-        
+
         this.dist_array[i] = dist(this.pos.x, this.pos.y, closest.x, closest.y);
-      } 
+      }
       i = i + 1;
     }
 
