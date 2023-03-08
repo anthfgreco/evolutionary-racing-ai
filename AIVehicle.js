@@ -1,28 +1,32 @@
 const LAYER_SIZES = [10, 15, 4];
 
 class AIVehicle extends Vehicle {
-  constructor(nn) {
+  constructor(nn, showTrail = false) {
     super();
     if (nn) this.nn = nn;
     else this.nn = new NeuralNetwork(...LAYER_SIZES);
+    this.fitness = 0;
+    this.showTrail = showTrail;
   }
 
   update() {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
-    this.dist_array = this.look(walls);
+    this.rayDistanceArray = this.look(walls);
 
     // Check if car is in collision using distance to walls
-    let hitWall = this.dist_array.filter((x) => x < 16).length > 0;
+    let hitWall = this.rayDistanceArray.filter((x) => x < 16).length > 0;
 
     if (hitWall) {
       this.kill();
-      population_alive--;
+      populationAlive--;
     }
 
     this.think();
-    this.steeringPhysicsUpdate();
+    //if (this.showTrail) this.drawTrail();
+
+    this.fitness += this.steeringPhysicsUpdate();
   }
 
   getNeuralNetwork() {
@@ -33,7 +37,7 @@ class AIVehicle extends Vehicle {
     if (this.nn) {
       let inputs = [];
 
-      inputs = inputs.concat(this.dist_array);
+      inputs = inputs.concat(this.rayDistanceArray);
 
       let output = this.nn.predict(inputs);
       // Argmax

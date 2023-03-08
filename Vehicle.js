@@ -3,10 +3,9 @@
 class Vehicle {
   constructor() {
     this.alive = true;
-    this.selected = false;
     this.rays = [];
     this.numRays = 10;
-    this.dist_array = [];
+    this.rayDistanceArray = [];
 
     // Turning parameters. Tune these as you see fit.
     this.turnRateStatic = 0.1; // The normal turning-rate (static friction => not sliding)
@@ -29,6 +28,10 @@ class Vehicle {
 
     // Colour variable - in an example the car colour changes when it loses traction
     this.col = color(255, 255, 255);
+
+    // Trail variables
+    this.trail = [];
+    this.trailLength = 100;
   }
 
   getPos() {
@@ -54,9 +57,7 @@ class Vehicle {
     strokeWeight(1);
     fill(this.col);
     // Draw car
-    if (this.selected) {
-      image(redCarImg, 0, 0);
-    } else if (!this.selected && this.nn == null) {
+    if (this.nn == null) {
       image(blueCarImg, 0, 0);
     } else {
       image(yellowCarImg, 0, 0);
@@ -92,18 +93,18 @@ class Vehicle {
     this.a = createVector(0, 0);
   }
 
-  checkIfMouseOver() {
-    if (dist(this.d.x, this.d.y, mouseX, mouseY) < 35) {
-      this.selected = !this.selected;
-    }
-  }
+  // checkIfMouseOver() {
+  //   if (dist(this.d.x, this.d.y, mouseX, mouseY) < 35) {
+  //     this.selected = !this.selected;
+  //   }
+  // }
 
   getCurrentSpeed() {
     return this.currentSpeed;
   }
 
-  look(walls, drawRays = true) {
-    this.dist_array = [];
+  look(walls) {
+    this.rayDistanceArray = [];
     let i = 0;
 
     for (let i = 0; i < this.numRays; i++) {
@@ -127,7 +128,12 @@ class Vehicle {
       }
 
       if (closest) {
-        this.dist_array[i] = dist(this.d.x, this.d.y, closest.x, closest.y);
+        this.rayDistanceArray[i] = dist(
+          this.d.x,
+          this.d.y,
+          closest.x,
+          closest.y
+        );
       }
       if (closest && drawRays) {
         // stroke(255, 100);
@@ -140,10 +146,11 @@ class Vehicle {
     }
 
     this.rays = [];
-    return this.dist_array;
+    return this.rayDistanceArray;
   }
 
   steeringPhysicsUpdate() {
+    let driftTime = 0;
     // Car steering and drifting physics
 
     // Rotate the global velocity vector into a body-fixed one. x = sideways velocity, y = forward/backwards
@@ -161,6 +168,7 @@ class Vehicle {
       grip = this.gripDynamic;
       this.turnRate = this.turnRateDynamic;
       this.isDrifting = true;
+      driftTime += 1;
     }
     bodyFixedDrag = createVector(vB.x * -this.gripDynamic, vB.y * 0.05);
 
@@ -173,6 +181,8 @@ class Vehicle {
     this.v.add(this.a);
     this.d.add(this.v);
     this.a = createVector(0, 0); // Reset acceleration for next frame
+
+    return driftTime;
   }
 
   vectBodyToWorld(vect, ang) {
@@ -193,5 +203,31 @@ class Vehicle {
       v.x * sin(ang) - v.y * cos(ang)
     );
     return vn;
+  }
+
+  drawTrail() {
+    let nowDrifting = this.isDrift();
+    this.trail.push({
+      position: this.getPos(), // A vector(x,y)
+      drifting: nowDrifting, // true / false
+    });
+
+    if (this.trail.length > this.trailLength) this.trail.splice(0, 1);
+
+    // Render the car's trail. Change color of trail depending on whether drifting or not.
+    strokeWeight(5);
+    for (let p of this.trail) {
+      // Colour the trail to show when drifting
+      if (p.drifting) {
+        stroke(0);
+      } else {
+        stroke(100);
+      }
+      let offset = 7;
+      point(p.position.x - offset, p.position.y - offset);
+      point(p.position.x + offset, p.position.y + offset);
+      point(p.position.x + offset, p.position.y - offset);
+      point(p.position.x - offset, p.position.y + offset);
+    }
   }
 }
