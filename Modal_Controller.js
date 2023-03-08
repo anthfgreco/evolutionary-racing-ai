@@ -6,7 +6,7 @@ $(function () {
   var prev_button = "#previous-button";
 
   // Show modal and hide previous button on startup
-  modal.show();
+  //modal.show();
   $(prev_button).hide();
 
   $("#modal").each(function () {

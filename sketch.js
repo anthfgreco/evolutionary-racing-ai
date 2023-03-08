@@ -1,23 +1,11 @@
-const MAX_SPEED = 9;
-const TURNING_SPEED = 3;
-const DRIVING_ACCEL = 0.1;
-const BRAKING_ACCEL = 0.1;
-const FRICTION_ACCEL = 0.03;
-
 const POPULATION_SIZE = 40;
-let MUTATION_RATE = 0.1;
-const MUTATION_RATE_STEP = 0.005;
+let simulationSpeed = 1;
+const MIN_MUTATION_RATE = 0.01;
+const MAX_MUTATION_RATE = 0.1;
 
-const STARTING_X = 500;
-const STARTING_Y = 125;
 let state = "player-drive";
-let generation_num = 0;
+let generation_num = 1;
 let population_alive = POPULATION_SIZE;
-let speed = 1;
-
-const DEBUG = false;
-
-const LAYERS = [5, 15, 3];
 
 let saved_nn;
 
@@ -31,6 +19,13 @@ let fps = 0;
 /********************************************************************
  *********************************************************************
  *********************************************************************/
+
+function preload() {
+  yellowCarImg = loadImage("img/yellowcar.png");
+  redCarImg = loadImage("img/redcar.png");
+  blueCarImg = loadImage("img/bluecar.png");
+}
+
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
   var canvas = createCanvas(
@@ -47,7 +42,6 @@ function setup() {
   */
   tf.setBackend("cpu");
 
-  angleMode(DEGREES);
   imageMode(CENTER);
   rectMode(CORNERS);
 
@@ -59,15 +53,11 @@ function setup() {
   walls.push(new Wall(x, x, x, height - x));
 
   // Draw inner walls
-  x = 175;
+  x = 350;
   walls.push(new Wall(x, x, width - x, x));
   walls.push(new Wall(x, height - x, width - x, height - x));
   walls.push(new Wall(width - x, x, width - x, height - x));
   walls.push(new Wall(x, x, x, height - x));
-
-  yellowCarImg = loadImage("img/yellowcar.png");
-  redCarImg = loadImage("img/redcar.png");
-  blueCarImg = loadImage("img/bluecar.png");
 
   // Dimensions for stats box when training
   stats_padding = 10;
@@ -76,7 +66,7 @@ function setup() {
   stats_x2 = stats_x1 + 200;
   stats_y2 = stats_y1 + 140;
 
-  player = new Vehicle(STARTING_X, STARTING_Y);
+  player = new PlayerVehicle();
 }
 
 /********************************************************************
@@ -85,7 +75,7 @@ function setup() {
 
 // Draw is ran every frame
 function draw() {
-  for (let n = 0; n < speed; n++) {
+  for (let n = 0; n < simulationSpeed; n++) {
     background(60);
     counter += 1;
 
@@ -94,11 +84,8 @@ function draw() {
     }
 
     if (state == "player-drive") {
-      if (keyIsDown(LEFT_ARROW)) player.rotateLeft();
-      else if (keyIsDown(RIGHT_ARROW)) player.rotateRight();
-      else if (keyIsDown(UP_ARROW)) player.drive();
-      else if (keyIsDown(DOWN_ARROW)) player.brake();
       player.update();
+      player.show();
     }
 
     if (state == "generation_training") {
@@ -106,19 +93,18 @@ function draw() {
 
       for (let i = 0; i < POPULATION_SIZE; i++) {
         population[i].update();
-        total_speed += population[i].getCurrentSpeed();
+        population[i].show();
+        total_speed += population[i].getVel();
       }
 
       draw_stats_box(total_speed);
     }
 
     if (state == "race") {
-      if (keyIsDown(LEFT_ARROW)) player.rotateLeft();
-      else if (keyIsDown(RIGHT_ARROW)) player.rotateRight();
-      else if (keyIsDown(UP_ARROW)) player.drive();
-      else if (keyIsDown(DOWN_ARROW)) player.brake();
       population[0].update();
+      population[0].show();
       player.update();
+      player.show();
     }
   }
 }
@@ -142,7 +128,7 @@ function draw_stats_box(total_speed) {
   if (population_alive == 0) average_speed = 0;
   else average_speed = total_speed / population_alive;
 
-  if (counter % 10 == 0) fps = round(frameRate());
+  if (counter % 100 == 0) fps = round(frameRate());
 
   textSize(20);
   fill(255);
@@ -153,41 +139,21 @@ function draw_stats_box(total_speed) {
     `Population: ${POPULATION_SIZE}\n` +
     `Alive: ${population_alive}\n` +
     `Average Speed: ${round(average_speed, 2)}\n` +
-    `Mutation Rate: ${(MUTATION_RATE * 100).toFixed(2)}%\n` +
     `Frame Rate: ${fps}`;
   text(s, stats_x1, stats_y1, stats_x2, stats_y2);
 }
+
+// `Mutation Rate: ${(MUTATION_RATE * 100).toFixed(2)}%\n` +
 
 function initialize_random_population() {
   update_alert("");
   state = "generation_training";
   generation_num = 1;
-  MUTATION_RATE = 0.1;
   population = [];
   for (let i = 0; i < POPULATION_SIZE; i++) {
-    population.push(
-      new Vehicle(STARTING_X, STARTING_Y, new NeuralNetwork(...LAYERS))
-    );
+    population.push(new AIVehicle());
   }
   population_alive = POPULATION_SIZE;
-}
-
-// I didn't realize you can just use the new generation function
-function initialize_from_saved() {
-  if (!saved_nn) {
-    console.log("No saved vehicle!");
-    update_alert("No saved vehicle!");
-  } else {
-    update_alert("");
-    state = "generation_training";
-    population = [];
-    for (let i = 0; i < POPULATION_SIZE; i++) {
-      let child_nn = saved_nn.copy();
-      child_nn.mutate(MUTATION_RATE);
-      population.push(new Vehicle(STARTING_X, STARTING_Y, child_nn));
-    }
-    population_alive = POPULATION_SIZE;
-  }
 }
 
 function race_saved_vehicle() {
@@ -197,8 +163,8 @@ function race_saved_vehicle() {
   } else {
     state = "race";
     population = [];
-    player = new Vehicle(STARTING_X, STARTING_Y);
-    population.push(new Vehicle(STARTING_X, STARTING_Y, saved_nn));
+    player = new PlayerVehicle();
+    population.push(new AIVehicle(saved_nn));
     population_alive = 1;
   }
 }
@@ -211,8 +177,8 @@ function load_trained_model() {
     update_alert("");
     state = "race";
     population = [];
-    player = new Vehicle(STARTING_X, STARTING_Y);
-    population.push(new Vehicle(STARTING_X, STARTING_Y, trained_nn));
+    player = new PlayerVehicle();
+    population.push(new AIVehicle(trained_nn));
     saved_nn = trained_nn;
     population_alive = 1;
   }
@@ -249,40 +215,32 @@ function new_generation() {
   // User did not select any vehicles
   if (chosen_vehicles.length == 0) {
     console.log("No cars selected!");
-    update_alert("Select the best performing cars first!");
+    update_alert("Click the best performing cars first!");
     return;
   }
-
-  MUTATION_RATE -= MUTATION_RATE_STEP;
-  if (MUTATION_RATE <= 0.01) MUTATION_RATE = 0.01;
 
   // If only one vehicle is selected, copy and mutate its neural network for the entire population
   // The chosen parent lives unmutated in the next generation (elitism)
   if (chosen_vehicles.length == 1) {
-    population[0] = new Vehicle(
-      STARTING_X,
-      STARTING_Y,
-      chosen_vehicles[0].getNeuralNetwork()
-    );
+    population[0] = new AIVehicle(chosen_vehicles[0].getNeuralNetwork());
     for (let i = 1; i < POPULATION_SIZE; i++) {
       let child_nn = chosen_vehicles[0].getNeuralNetwork();
-      child_nn.mutate(MUTATION_RATE);
-      population[i] = new Vehicle(STARTING_X, STARTING_Y, child_nn);
+      variableMutation = map(
+        i,
+        0,
+        POPULATION_SIZE,
+        MIN_MUTATION_RATE,
+        MAX_MUTATION_RATE
+      );
+      child_nn.mutate(variableMutation);
+      population[i] = new AIVehicle(child_nn);
     }
   }
   // If two or more vehicles are selected, randomly pick two chosen vehicles and cross and mutate their neural networks
   // Two of the chosen parents live unmutated in the next generation (elitism)
   else {
-    population[0] = new Vehicle(
-      STARTING_X,
-      STARTING_Y,
-      chosen_vehicles[0].getNeuralNetwork()
-    );
-    population[1] = new Vehicle(
-      STARTING_X,
-      STARTING_Y,
-      chosen_vehicles[1].getNeuralNetwork()
-    );
+    population[0] = new AIVehicle(chosen_vehicles[0].getNeuralNetwork());
+    population[1] = new AIVehicle(chosen_vehicles[1].getNeuralNetwork());
     for (let i = 2; i < POPULATION_SIZE; i++) {
       let parent_1 =
         chosen_vehicles[Math.floor(Math.random() * chosen_vehicles.length)];
@@ -291,8 +249,15 @@ function new_generation() {
       let nn_1 = parent_1.getNeuralNetwork();
       let nn_2 = parent_2.getNeuralNetwork();
       nn_1.crossover(nn_2);
-      nn_1.mutate(MUTATION_RATE);
-      population[i] = new Vehicle(STARTING_X, STARTING_Y, nn_1);
+      variableMutation = map(
+        i,
+        0,
+        POPULATION_SIZE,
+        MIN_MUTATION_RATE,
+        MAX_MUTATION_RATE
+      );
+      nn_1.mutate(variableMutation);
+      population[i] = new AIVehicle(nn_1);
     }
   }
 
@@ -304,8 +269,8 @@ function new_generation() {
 
 function save_selected_vehicle() {
   if (state == "player-drive") {
-    console.log("Initialize population first!");
-    update_alert("A car isn't selected!");
+    console.log("Initialize a population first!");
+    update_alert("Initialize a population first!");
   }
 
   if (state == "generation_training" || state == "race") {
@@ -313,7 +278,7 @@ function save_selected_vehicle() {
 
     if (chosen_vehicles.length == 0) {
       console.log("No vehicle selected!");
-      update_alert("A car isn't selected!");
+      update_alert("No car selected, click on a car!");
     } else {
       saved_nn = chosen_vehicles[0].getNeuralNetwork();
       update_alert("");

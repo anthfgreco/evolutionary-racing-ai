@@ -1,70 +1,115 @@
-// Class for vehicle display and control
-// Vehicle begins pointing in the positive X direction
+// Drift physics from https://github.com/michaelruppe/drift-car
+
 class Vehicle {
-  constructor(x, y, nn) {
-    this.pos = createVector(x, y);
-    this.currentSpeed = 0;
-    this.angle = 0;
-    this.action = "drive";
+  constructor() {
     this.alive = true;
     this.selected = false;
     this.rays = [];
+    this.numRays = 10;
     this.dist_array = [];
-    this.nn = nn;
+
+    // Turning parameters. Tune these as you see fit.
+    this.turnRateStatic = 0.1; // The normal turning-rate (static friction => not sliding)
+    this.turnRateDynamic = 0.08; // The turning-rate when drifting
+    this.turnRate = this.turnRateStatic; // initialise turn-rate
+    this.gripStatic = 2; // sliding friction while gripping
+    this.gripDynamic = 0.5; // sliding friction while drifting
+    this.DRIFT_CONSTANT = 3; // sets the x-velocity threshold for no-drift <=> drift. Lower = drift sooner
+
+    // Physical properties
+    this.d = createVector(width * 0.75, height * 0.85); // displacement (position)
+    this.v = createVector(0, 0); // velocity (world-referenced)
+    this.a = createVector(0, 0); // acceleration (world-referenced)
+    this.angle = -PI / 2; // heading - the direction the car faces
+    this.m = 10; // mass
+    this.w = 18; // width of body (for animation)
+    this.l = 30; // length of body (for animation)
+    this.f = 0.15; // Acceleration / braking force
+    this.isDrifting = false; // Drift state
+
+    // Colour variable - in an example the car colour changes when it loses traction
+    this.col = color(255, 255, 255);
+  }
+
+  getPos() {
+    return this.d.copy();
+  }
+
+  getVel() {
+    if (!this.alive) return 0;
+    else return abs(this.v.x) + abs(this.v.y);
+  }
+
+  isDrift() {
+    return this.isDrifting;
+  }
+
+  show() {
+    // Centre on the car, rotate
+    push();
+    rectMode(CENTER);
+    translate(this.d.x, this.d.y);
+    rotate(this.angle);
+    stroke(0);
+    strokeWeight(1);
+    fill(this.col);
+    // Draw car
+    if (this.selected) {
+      image(redCarImg, 0, 0);
+    } else if (!this.selected && this.nn == null) {
+      image(blueCarImg, 0, 0);
+    } else {
+      image(yellowCarImg, 0, 0);
+    }
+    //rect(0, 0, this.w, this.l); // Car body
+    //rect(0, this.l / 2, 4, 4); // Indicate front side
+    pop();
   }
 
   rotateLeft() {
-    this.angle -= TURNING_SPEED;
-    this.action = "left";
+    this.angle -= this.turnRate;
   }
 
   rotateRight() {
-    this.angle += TURNING_SPEED;
-    this.action = "right";
+    this.angle += this.turnRate;
   }
 
   drive() {
-    // Applies forward force to car, doesn't allow car to go over max speed
-    this.currentSpeed += DRIVING_ACCEL;
-    if (this.currentSpeed > MAX_SPEED) this.currentSpeed = MAX_SPEED;
-    this.action = "drive";
+    let bodyAcc = createVector(0, this.f);
+    let worldAcc = this.vectBodyToWorld(bodyAcc, this.angle);
+    this.a.add(worldAcc);
   }
 
   brake() {
-    // Applies braking (backwards) force to car, doesn't allow car to reverse
-    this.currentSpeed -= BRAKING_ACCEL;
-    if (this.currentSpeed < BRAKING_ACCEL) this.currentSpeed = 0;
-    this.action = "brake";
+    let bodyAcc = createVector(0, -this.f);
+    let worldAcc = this.vectBodyToWorld(bodyAcc, this.angle);
+    this.a.add(worldAcc);
   }
 
   kill() {
     this.alive = false;
-    this.currentSpeed = 0;
+    this.v = createVector(0, 0);
+    this.a = createVector(0, 0);
   }
 
   checkIfMouseOver() {
-    if (dist(this.pos.x, this.pos.y, mouseX, mouseY) < 35) {
+    if (dist(this.d.x, this.d.y, mouseX, mouseY) < 35) {
       this.selected = !this.selected;
     }
-  }
-
-  getNeuralNetwork() {
-    return this.nn.copy();
   }
 
   getCurrentSpeed() {
     return this.currentSpeed;
   }
 
-  look(walls) {
+  look(walls, drawRays = true) {
     this.dist_array = [];
     let i = 0;
 
-    this.rays[0] = new Ray(this.pos, radians(this.angle));
-    this.rays[1] = new Ray(this.pos, radians(this.angle + 90));
-    this.rays[2] = new Ray(this.pos, radians(this.angle - 90));
-    this.rays[3] = new Ray(this.pos, radians(this.angle + 45));
-    this.rays[4] = new Ray(this.pos, radians(this.angle - 45));
+    for (let i = 0; i < this.numRays; i++) {
+      let angleOffset = map(i, 0, this.numRays - 1, 0, PI);
+      this.rays[i] = new Ray(this.d, this.angle + angleOffset);
+    }
 
     for (let ray of this.rays) {
       let closest = null;
@@ -73,7 +118,7 @@ class Vehicle {
       for (let wall of walls) {
         let pt = ray.cast(wall);
         if (pt) {
-          const d = p5.Vector.dist(this.pos, pt);
+          const d = p5.Vector.dist(this.d, pt);
           if (d < record) {
             closest = pt;
             record = d;
@@ -82,11 +127,14 @@ class Vehicle {
       }
 
       if (closest) {
-        stroke(255, 100);
-        strokeWeight(4);
-        line(this.pos.x, this.pos.y, closest.x, closest.y);
-
-        this.dist_array[i] = dist(this.pos.x, this.pos.y, closest.x, closest.y);
+        this.dist_array[i] = dist(this.d.x, this.d.y, closest.x, closest.y);
+      }
+      if (closest && drawRays) {
+        // stroke(255, 100);
+        // strokeWeight(4);
+        stroke(255, 75);
+        strokeWeight(3);
+        line(this.d.x, this.d.y, closest.x, closest.y);
       }
       i = i + 1;
     }
@@ -95,78 +143,55 @@ class Vehicle {
     return this.dist_array;
   }
 
-  think() {
-    if (this.nn) {
-      let inputs = [];
-      //inputs.push(this.currentSpeed);
-      //inputs.push(this.angle);
-      inputs = inputs.concat(this.dist_array);
+  steeringPhysicsUpdate() {
+    // Car steering and drifting physics
 
-      let output = this.nn.predict(inputs);
-      // Argmax
-      let predictedAction = output.indexOf(Math.max(...output));
+    // Rotate the global velocity vector into a body-fixed one. x = sideways velocity, y = forward/backwards
+    let vB = this.vectWorldToBody(this.v, this.angle);
 
-      switch (predictedAction) {
-        case 0:
-          this.rotateLeft();
-          break;
-        case 1:
-          this.rotateRight();
-          break;
-        case 2:
-          this.drive();
-          break;
-        case 3:
-          this.brake();
-          break;
-      }
+    let bodyFixedDrag;
+    let grip;
+    if (abs(vB.x) < this.DRIFT_CONSTANT) {
+      // Gripping
+      grip = this.gripStatic;
+      this.turnRate = this.turnRateStatic;
+      this.isDrifting = false;
+    } else {
+      // Drifting
+      grip = this.gripDynamic;
+      this.turnRate = this.turnRateDynamic;
+      this.isDrifting = true;
     }
+    bodyFixedDrag = createVector(vB.x * -this.gripDynamic, vB.y * 0.05);
+
+    // Rotate body fixed forces into world fixed and add to acceleration
+    let worldFixedDrag = this.vectBodyToWorld(bodyFixedDrag, this.angle);
+    this.a.add(worldFixedDrag.div(this.m)); // Include inertia
+
+    // Physics Engine
+    this.angle = this.angle % TWO_PI; // Restrict angle to one revolution
+    this.v.add(this.a);
+    this.d.add(this.v);
+    this.a = createVector(0, 0); // Reset acceleration for next frame
   }
 
-  update() {
-    let dist_array;
-    // Shoot rays from car and calculate the length of each ray from car to the wall
-    if (this.alive) {
-      dist_array = this.look(walls);
-    }
+  vectBodyToWorld(vect, ang) {
+    // Body to world rotation
+    let v = vect.copy();
+    let vn = createVector(
+      v.x * cos(ang) - v.y * sin(ang),
+      v.x * sin(ang) + v.y * cos(ang)
+    );
+    return vn;
+  }
 
-    //console.log(dist_array);
-
-    // Draw car
-    push();
-    translate(this.pos.x, this.pos.y);
-    rotate(this.angle);
-    if (this.selected) image(redCarImg, 0, 0);
-    else if (!this.selected && this.nn == null) image(blueCarImg, 0, 0);
-    else image(yellowCarImg, 0, 0);
-    pop();
-
-    if (this.alive == false) return;
-
-    if (this.nn) this.drive();
-
-    // Update position of car
-    this.pos.x += this.currentSpeed * Math.cos((this.angle * Math.PI) / 180);
-    this.pos.y += this.currentSpeed * Math.sin((this.angle * Math.PI) / 180);
-
-    // Velocity dampening from friction
-    this.currentSpeed -= FRICTION_ACCEL;
-    if (this.currentSpeed < FRICTION_ACCEL) this.currentSpeed = 0;
-
-    // Collision array, car is in collision if any of the values are less than the array: [26,  5,  5,  17,  17]
-    // Check if car is in collision using distance to walls
-    let hitWall =
-      dist_array[0] < 26 ||
-      dist_array[1] < 5 ||
-      dist_array[2] < 5 ||
-      dist_array[3] < 17 ||
-      dist_array[4] < 17;
-
-    if (hitWall) {
-      this.kill();
-      population_alive--;
-    }
-
-    this.think();
+  vectWorldToBody(vect, ang) {
+    // World to body rotation
+    let v = vect.copy();
+    let vn = createVector(
+      v.x * cos(ang) + v.y * sin(ang),
+      v.x * sin(ang) - v.y * cos(ang)
+    );
+    return vn;
   }
 }

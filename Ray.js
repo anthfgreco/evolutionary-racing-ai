@@ -48,7 +48,7 @@ class Ray {
       pt.y = y1 + t * (y2 - y1);
       return pt;
     } else {
-      return null;
+      return createVector(2000, 2000);
     }
   }
 }
