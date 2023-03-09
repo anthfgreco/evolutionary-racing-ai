@@ -6,6 +6,8 @@ class Vehicle {
     this.rays = [];
     this.numRays = 10;
     this.rayDistanceArray = [];
+    this.carScale = 0.6;
+    this.visible = true;
 
     // Turning parameters. Tune these as you see fit.
     this.turnRateStatic = 0.1; // The normal turning-rate (static friction => not sliding)
@@ -21,8 +23,8 @@ class Vehicle {
     this.a = createVector(0, 0); // acceleration (world-referenced)
     this.angle = -PI / 2; // heading - the direction the car faces
     this.m = 10; // mass
-    this.w = 18; // width of body (for animation)
-    this.l = 30; // length of body (for animation)
+    this.w = 22; // width of body (for animation)
+    this.l = 50; // length of body (for animation)
     this.f = 0.15; // Acceleration / braking force
     this.isDrifting = false; // Drift state
 
@@ -31,7 +33,7 @@ class Vehicle {
 
     // Trail variables
     this.trail = [];
-    this.trailLength = 100;
+    this.trailLength = 500;
   }
 
   getPos() {
@@ -40,7 +42,7 @@ class Vehicle {
 
   getVel() {
     if (!this.alive) return 0;
-    else return abs(this.v.x) + abs(this.v.y);
+    else return this.v.mag();
   }
 
   isDrift() {
@@ -48,6 +50,15 @@ class Vehicle {
   }
 
   show() {
+    // Don't show dead AI cars
+    if (!this.alive && this.nn) {
+      setTimeout(() => {
+        this.visible = false;
+      }, 2000);
+    }
+
+    if (!this.visible) return;
+
     // Centre on the car, rotate
     push();
     rectMode(CENTER);
@@ -56,14 +67,16 @@ class Vehicle {
     stroke(0);
     strokeWeight(1);
     fill(this.col);
+    scale(this.carScale);
     // Draw car
+    //rect(0, 0, this.w, this.l); // Car body
+    //rect(0, this.l / 2, 4, 4); // Indicate front side
+
     if (this.nn == null) {
       image(blueCarImg, 0, 0);
     } else {
       image(yellowCarImg, 0, 0);
     }
-    //rect(0, 0, this.w, this.l); // Car body
-    //rect(0, this.l / 2, 4, 4); // Indicate front side
     pop();
   }
 
@@ -136,8 +149,6 @@ class Vehicle {
         );
       }
       if (closest && drawRays) {
-        // stroke(255, 100);
-        // strokeWeight(4);
         stroke(255, 75);
         strokeWeight(3);
         line(this.d.x, this.d.y, closest.x, closest.y);
@@ -146,7 +157,11 @@ class Vehicle {
     }
 
     this.rays = [];
-    return this.rayDistanceArray;
+
+    // Check if car is in collision using distance to walls
+    // let hitboxSize = 16;
+    let hitboxSize = (this.l * this.carScale) / 3;
+    return this.rayDistanceArray.filter((x) => x < hitboxSize).length > 0;
   }
 
   steeringPhysicsUpdate() {
@@ -215,7 +230,7 @@ class Vehicle {
     if (this.trail.length > this.trailLength) this.trail.splice(0, 1);
 
     // Render the car's trail. Change color of trail depending on whether drifting or not.
-    strokeWeight(5);
+    strokeWeight(4);
     for (let p of this.trail) {
       // Colour the trail to show when drifting
       if (p.drifting) {
@@ -223,7 +238,8 @@ class Vehicle {
       } else {
         stroke(100);
       }
-      let offset = 7;
+      // let offset = 7;
+      let offset = (this.w * this.carScale) / 3;
       point(p.position.x - offset, p.position.y - offset);
       point(p.position.x + offset, p.position.y + offset);
       point(p.position.x + offset, p.position.y - offset);

@@ -1,32 +1,59 @@
-const LAYER_SIZES = [10, 15, 4];
-
 class AIVehicle extends Vehicle {
   constructor(nn, showTrail = false) {
     super();
+    this.LAYER_SIZES = [10, 10, 4];
     if (nn) this.nn = nn;
-    else this.nn = new NeuralNetwork(...LAYER_SIZES);
+    else this.nn = new NeuralNetwork(...this.LAYER_SIZES);
     this.fitness = 0;
     this.showTrail = showTrail;
+    this.currentCheckpoint = 0;
+
+    // // Kill if not moving, saves computation
+    this.killIfNotMovingTimer = setTimeout(() => {
+      this.kill();
+      this.visible = false;
+      populationAlive--;
+    }, 2000);
   }
 
   update() {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
-    this.rayDistanceArray = this.look(walls);
-
-    // Check if car is in collision using distance to walls
-    let hitWall = this.rayDistanceArray.filter((x) => x < 16).length > 0;
+    const hitWall = this.look(walls);
 
     if (hitWall) {
       this.kill();
       populationAlive--;
     }
 
-    this.think();
     //if (this.showTrail) this.drawTrail();
 
-    this.fitness += this.steeringPhysicsUpdate();
+    if (this.getVel() > 0.02) {
+      clearTimeout(this.killIfNotMovingTimer);
+    }
+
+    this.think();
+    // Old fitness function, not ideal because AI learns to drive in circles
+    //this.fitness += this.steeringPhysicsUpdate();
+    this.steeringPhysicsUpdate();
+    this.fitness += this.checkCheckpoint();
+  }
+
+  checkCheckpoint() {
+    // Check if the player's position is within the radius of the current checkpoint
+    let d = dist(
+      this.d.x,
+      this.d.y,
+      checkpoints[this.currentCheckpoint].x,
+      checkpoints[this.currentCheckpoint].y
+    );
+    if (d < checkpointSize) {
+      this.currentCheckpoint =
+        (this.currentCheckpoint + 1) % checkpoints.length;
+      return 1;
+    }
+    return 0;
   }
 
   getNeuralNetwork() {
@@ -34,32 +61,30 @@ class AIVehicle extends Vehicle {
   }
 
   think() {
-    if (this.nn) {
-      let inputs = [];
+    let inputs = [];
 
-      inputs = inputs.concat(this.rayDistanceArray);
+    inputs = inputs.concat(this.rayDistanceArray);
 
-      let output = this.nn.predict(inputs);
-      // Argmax
-      let predictedAction = output.indexOf(Math.max(...output));
+    // Argmax
+    let output = this.nn.predict(inputs);
+    let predictedAction = output.indexOf(Math.max(...output));
 
-      switch (predictedAction) {
-        case 0:
-          this.rotateLeft();
-          break;
-        case 1:
-          this.rotateRight();
-          break;
-        case 2:
-          // do nothing
-          break;
-        case 3:
-          this.drive();
-          break;
-        // case 4:
-        //   this.brake();
-        //   break;
-      }
+    switch (predictedAction) {
+      case 0:
+        this.rotateLeft();
+        break;
+      case 1:
+        this.rotateRight();
+        break;
+      case 2:
+        // do nothing
+        break;
+      case 3:
+        this.drive();
+        break;
+      // case 4:
+      //   this.brake();
+      //   break;
     }
   }
 }

@@ -1,26 +1,50 @@
-let populationSize = 50;
-let elitePercent = 0.1;
+// Simulation constant variables
+let populationSize = 60;
+let elitism = 0.1;
 let minMutationRate = 0.01;
-let maxMutationRate = 0.1;
-let simulationSpeed = 2;
+let maxMutationRate = 0.2;
+let timePerGeneration = 15;
+let simulationSpeed = 1;
 
-let state = "player-drive";
-let generation_num = 1;
-let populationAlive = populationSize;
 let drawRays = false;
 
 let saved_nn;
 
+let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
+
+// Simulation variables
+let generation_num = 1;
+let state = "player-drive";
 let population = [];
 let walls = [];
-
-let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
-let fps = 0;
+let fps = 60;
 let averageSpeed = 0;
 let totalSpeed = 0;
-
-let timePerGeneration = 20;
+let populationAlive = populationSize;
 let timer = timePerGeneration;
+
+let showCheckPoints = true;
+let checkpointSize = 180;
+let pointList = [];
+let checkpoints = [
+  { x: 1411, y: 735 },
+  { x: 1419, y: 505 },
+  { x: 1417, y: 324 },
+  { x: 1418, y: 126 },
+  { x: 1194, y: 115 },
+  { x: 947, y: 106 },
+  { x: 747, y: 114 },
+  { x: 510, y: 97 },
+  { x: 296, y: 100 },
+  { x: 137, y: 108 },
+  { x: 112, y: 276 },
+  { x: 108, y: 476 },
+  { x: 107, y: 732 },
+  { x: 318, y: 738 },
+  { x: 575, y: 741 },
+  { x: 872, y: 751 },
+  { x: 1183, y: 746 },
+];
 
 /********************************************************************
  *********************************************************************
@@ -51,58 +75,9 @@ function setup() {
 
   imageMode(CENTER);
   rectMode(CORNERS);
+  frameRate(60);
 
-  // Draw outer walls
-  // z = 50;
-  // walls.push(new Wall(z, z, width - z, z));
-  // walls.push(new Wall(z, height - z, width - z, height - z));
-  // walls.push(new Wall(width - z, z, width - z, height - z));
-  // walls.push(new Wall(z, z, z, height - z));
-
-  // Draw inner walls
-  //z = 300;
-  // walls.push(new Wall(z, z, width - z, z));
-  // walls.push(new Wall(z, height - z, width - z, height - z));
-  // walls.push(new Wall(width - z, z, width - z, height - z));
-  // walls.push(new Wall(z, z, z, height - z));
-
-  // let topLeft = createVector(z, z);
-  // let topRight = createVector(width - z, z);
-  // let bottomLeft = createVector(z, height - z);
-  // let bottomRight = createVector(width - z, height - z);
-
-  // Outer walls
-  z = 50;
-  let topLeft = createVector(z, z);
-  let topRight = createVector(width - z, z);
-  let bottomLeft = createVector(z + 150, height - z + 50);
-  let bottomRight = createVector(width - z, height - z);
-
-  walls.push(new Wall(topLeft.x, topLeft.y, topRight.x, topRight.y));
-  walls.push(new Wall(topRight.x, topRight.y, bottomRight.x, bottomRight.y));
-  walls.push(
-    new Wall(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y)
-  );
-  walls.push(new Wall(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y));
-
-  // Inner walls
-  z = 300;
-  topLeft = createVector(z - 50, z - 90);
-  topRight = createVector(width - z + 122, z - 100);
-  bottomLeft = createVector(z + 35, height - z + 75);
-  bottomRight = createVector(width - z + 120, height - z + 130);
-
-  walls.push(new Wall(topLeft.x, topLeft.y, topRight.x, topRight.y));
-  walls.push(new Wall(topRight.x, topRight.y, bottomRight.x, bottomRight.y));
-  walls.push(
-    new Wall(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y)
-  );
-  walls.push(new Wall(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y));
-
-  // walls.push(new Wall(z, z, width - z, z));
-  // walls.push(new Wall(z, height - z, width - z, height - z));
-  // walls.push(new Wall(width - z, z, width - z, height - z));
-  // walls.push(new Wall(z, z, z, height - z));
+  createBoxRaceTrack(50, 225);
 
   // Dimensions for stats box when training
   stats_padding = 10;
@@ -121,21 +96,26 @@ function setup() {
 // Draw is ran every frame
 function draw() {
   for (let n = 0; n < simulationSpeed; n++) {
-    background(60);
+    background(40);
     if (frameCount % 60 == 0 && timer > 0) timer--;
-
-    if (walls.length == 8 && timer > timePerGeneration - 4) {
-      let w = width * 0.73;
-      let h = height * 0.85;
-      walls.push(new Wall(w, h - 50, w, h + 50));
-    }
-
-    if (walls.length == 9 && timer < timePerGeneration - 4) {
-      walls.pop();
-    }
 
     for (let wall of walls) {
       wall.show();
+    }
+
+    // Debug checkpoints
+    if (showCheckPoints) {
+      push();
+      checkpoints.map((c, i) => {
+        fill(255);
+        circle(c.x, c.y, checkpointSize);
+        noStroke();
+        fill(0);
+        textSize(20);
+        textAlign(CENTER);
+        text(i, c.x, c.y);
+      });
+      pop();
     }
 
     if (state == "player-drive") {
@@ -178,6 +158,23 @@ function draw() {
  *********************************************************************
  *********************************************************************/
 
+function createBoxRaceTrack(a, b) {
+  const args = [...arguments];
+
+  args.forEach((z) => {
+    let topLeft = createVector(z, z);
+    let topRight = createVector(width - z, z);
+    let bottomLeft = createVector(z, height - z);
+    let bottomRight = createVector(width - z, height - z);
+    walls.push(
+      new Wall(topLeft.x, topLeft.y, topRight.x, topRight.y),
+      new Wall(topRight.x, topRight.y, bottomRight.x, bottomRight.y),
+      new Wall(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y),
+      new Wall(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y)
+    );
+  });
+}
+
 function drawStatsBox() {
   // Draw box around stats
   fill(0, 99);
@@ -189,8 +186,9 @@ function drawStatsBox() {
     stats_y2 + stats_padding
   );
 
-  if (frameCount % 50 == 0) fps = round(frameRate());
+  if (frameCount % 10 == 0) fps = round(getFrameRate());
 
+  push();
   textSize(20);
   fill(255);
   textAlign(LEFT);
@@ -204,6 +202,7 @@ function drawStatsBox() {
     `Generation Time: ${timer}s`;
 
   text(s, stats_x1, stats_y1, stats_x2, stats_y2);
+  pop();
 }
 
 // `Mutation Rate: ${(MUTATION_RATE * 100).toFixed(2)}%\n` +
@@ -242,7 +241,7 @@ function getChosenVehicles() {
     population.sort(function (a, b) {
       return b.fitness - a.fitness;
     });
-    for (let i = 0; i < populationSize * elitePercent; i++) {
+    for (let i = 0; i < populationSize * elitism; i++) {
       chosen_vehicles.push(population[i]);
     }
   }
@@ -261,7 +260,6 @@ function newGeneration() {
 
   timer = timePerGeneration;
   updateAlert("");
-  state = "generation_training";
   generation_num++;
   populationAlive = populationSize;
 
@@ -312,6 +310,8 @@ function newGeneration() {
       population[i] = new AIVehicle(nn_1);
     }
   }
+
+  state = "generation_training";
 }
 
 function saveBestVehicle() {
@@ -327,17 +327,18 @@ function saveBestVehicle() {
   }
 }
 
-// function mouseClicked() {
-//   if (state == "generation_training") {
-//     for (let i = 0; i < populationSize; i++) {
-//       population[i].checkIfMouseOver();
-//     }
-//   }
+function mouseClicked() {
+  pointList.push([mouseX, mouseY]);
+  //   if (state == "generation_training") {
+  //     for (let i = 0; i < populationSize; i++) {
+  //       population[i].checkIfMouseOver();
+  //     }
+  //   }
 
-//   if (state == "race") {
-//     population[0].checkIfMouseOver();
-//   }
-// }
+  //   if (state == "race") {
+  //     population[0].checkIfMouseOver();
+  //   }
+}
 
 function keyPressed() {
   key = key.toUpperCase();
