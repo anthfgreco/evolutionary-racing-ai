@@ -1,6 +1,6 @@
 :root {
   --nav-bar-size: 60px;
-  --sub-nav-size : 20px;
+  --sub-nav-size: 20px;
 }
 
 * {
@@ -10,7 +10,8 @@
   font-weight: 500;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -39,7 +40,7 @@ canvas {
   display: flex;
 }
 
-#alert-div { 
+#alert-div {
   color: #ffffff !important;
   font-size: 15px;
   font-weight: 400;
@@ -69,11 +70,14 @@ a {
 a:hover {
   text-decoration-line: none !important;
   color: #16a085 !important;
-  transition-duration: 0.10s;
+  transition-duration: 0.1s;
   transition-timing-function: ease;
 }
 
 #sketch-holder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: calc(100% - (var(--nav-bar-size) + var(--sub-nav-size)));
 }
@@ -104,7 +108,7 @@ img {
   margin: 0px auto 15px auto;
 }
 
-.disableSelection{
+.disableSelection {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;

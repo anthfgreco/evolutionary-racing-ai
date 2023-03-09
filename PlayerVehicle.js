@@ -7,7 +7,6 @@ class PlayerVehicle extends Vehicle {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
-    // Shoot rays from car and calculate the length of each ray from car to the wall
     const hitWall = this.look(walls);
 
     if (hitWall) {

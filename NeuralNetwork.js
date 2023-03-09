@@ -1,5 +1,3 @@
-// Daniel Shiffman
-
 class NeuralNetwork {
   constructor(a, b, c, d) {
     if (a instanceof tf.Sequential) {
@@ -91,18 +89,30 @@ class NeuralNetwork {
   }
 
   createModel() {
-    const model = tf.sequential();
-    const hidden = tf.layers.dense({
-      units: this.hidden_nodes,
-      inputShape: [this.input_nodes],
-      activation: "sigmoid",
-    });
-    model.add(hidden);
-    const output = tf.layers.dense({
-      units: this.output_nodes,
-      activation: "softmax",
-    });
-    model.add(output);
-    return model;
+    if (this.hidden_nodes == 0) {
+      return tf.sequential({
+        layers: [
+          tf.layers.dense({
+            inputShape: [this.input_nodes],
+            units: this.output_nodes,
+            activation: "softmax",
+          }),
+        ],
+      });
+    } else {
+      return tf.sequential({
+        layers: [
+          tf.layers.dense({
+            inputShape: [this.input_nodes],
+            units: this.hidden_nodes,
+            activation: "relu",
+          }),
+          tf.layers.dense({
+            units: this.output_nodes,
+            activation: "softmax",
+          }),
+        ],
+      });
+    }
   }
 }

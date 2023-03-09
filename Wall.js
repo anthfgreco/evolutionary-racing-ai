@@ -5,7 +5,7 @@ class Wall {
   }
 
   show() {
-    strokeWeight(5);
+    strokeWeight(2);
     stroke(255);
     line(this.a.x, this.a.y, this.b.x, this.b.y);
   }

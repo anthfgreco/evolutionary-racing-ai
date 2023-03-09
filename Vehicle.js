@@ -4,7 +4,7 @@ class Vehicle {
   constructor() {
     this.alive = true;
     this.rays = [];
-    this.numRays = 10;
+    this.numRays = 8;
     this.rayDistanceArray = [];
     this.carScale = 0.6;
     this.visible = true;
@@ -33,7 +33,7 @@ class Vehicle {
 
     // Trail variables
     this.trail = [];
-    this.trailLength = 500;
+    this.trailLength = 150;
   }
 
   getPos() {
@@ -42,7 +42,7 @@ class Vehicle {
 
   getVel() {
     if (!this.alive) return 0;
-    else return this.v.mag();
+    else return abs(this.v.mag());
   }
 
   isDrift() {
@@ -50,13 +50,6 @@ class Vehicle {
   }
 
   show() {
-    // Don't show dead AI cars
-    if (!this.alive && this.nn) {
-      setTimeout(() => {
-        this.visible = false;
-      }, 2000);
-    }
-
     if (!this.visible) return;
 
     // Centre on the car, rotate

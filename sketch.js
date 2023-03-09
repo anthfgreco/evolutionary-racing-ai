@@ -1,12 +1,13 @@
 // Simulation constant variables
-let populationSize = 60;
-let elitism = 0.1;
-let minMutationRate = 0.01;
-let maxMutationRate = 0.2;
-let timePerGeneration = 15;
+let populationSize = 50;
+let elitism = 0.05;
+let minMutationRate = 0.02;
+let maxMutationRate = 0.1;
+let timePerGeneration = 20;
 let simulationSpeed = 1;
 
 let drawRays = false;
+let showCheckPoints = true;
 
 let saved_nn;
 
@@ -23,27 +24,303 @@ let totalSpeed = 0;
 let populationAlive = populationSize;
 let timer = timePerGeneration;
 
-let showCheckPoints = true;
-let checkpointSize = 180;
-let pointList = [];
+let checkpointSize = 90;
+let clickedPoints = [];
 let checkpoints = [
-  { x: 1411, y: 735 },
-  { x: 1419, y: 505 },
-  { x: 1417, y: 324 },
-  { x: 1418, y: 126 },
-  { x: 1194, y: 115 },
-  { x: 947, y: 106 },
-  { x: 747, y: 114 },
-  { x: 510, y: 97 },
-  { x: 296, y: 100 },
-  { x: 137, y: 108 },
-  { x: 112, y: 276 },
-  { x: 108, y: 476 },
-  { x: 107, y: 732 },
-  { x: 318, y: 738 },
-  { x: 575, y: 741 },
-  { x: 872, y: 751 },
-  { x: 1183, y: 746 },
+  {
+    x: 807.5,
+    y: 631.5,
+  },
+  {
+    x: 851.5,
+    y: 538.5,
+  },
+  {
+    x: 810.5,
+    y: 462.5,
+  },
+  {
+    x: 757.5,
+    y: 418.5,
+  },
+  {
+    x: 773.5,
+    y: 317.5,
+  },
+  {
+    x: 873.5,
+    y: 230.5,
+  },
+  {
+    x: 908.5,
+    y: 139.5,
+  },
+  {
+    x: 848.5,
+    y: 68.5,
+  },
+  {
+    x: 744.5,
+    y: 56.5,
+  },
+  {
+    x: 626.5,
+    y: 48.5,
+  },
+  {
+    x: 502.5,
+    y: 88.5,
+  },
+  {
+    x: 436.5,
+    y: 148.5,
+  },
+  {
+    x: 411.5,
+    y: 248.5,
+  },
+  {
+    x: 405.5,
+    y: 350.5,
+  },
+  {
+    x: 316.5,
+    y: 408.5,
+  },
+  {
+    x: 193.5,
+    y: 426.5,
+  },
+  {
+    x: 132.5,
+    y: 495.5,
+  },
+  {
+    x: 125.5,
+    y: 635.5,
+  },
+  {
+    x: 223.5,
+    y: 684.5,
+  },
+  {
+    x: 356.5,
+    y: 675.5,
+  },
+  {
+    x: 491.5,
+    y: 688.5,
+  },
+  {
+    x: 654.5,
+    y: 675.5,
+  },
+];
+let wallPoints = [
+  [
+    {
+      x: 149.5,
+      y: 740.5,
+    },
+    {
+      x: 831.5,
+      y: 736.5,
+    },
+    {
+      x: 912.5,
+      y: 719.5,
+    },
+    {
+      x: 958.5,
+      y: 680.5,
+    },
+    {
+      x: 986.5,
+      y: 618.5,
+    },
+    {
+      x: 986.5,
+      y: 518.5,
+    },
+    {
+      x: 952.5,
+      y: 453.5,
+    },
+    {
+      x: 897.5,
+      y: 432.5,
+    },
+    {
+      x: 837.5,
+      y: 403.5,
+    },
+    {
+      x: 832.5,
+      y: 353.5,
+    },
+    {
+      x: 875.5,
+      y: 318.5,
+    },
+    {
+      x: 972.5,
+      y: 234.5,
+    },
+    {
+      x: 992.5,
+      y: 127.5,
+    },
+    {
+      x: 974.5,
+      y: 65.5,
+    },
+    {
+      x: 925.5,
+      y: 38.5,
+    },
+    {
+      x: 833.5,
+      y: 10.5,
+    },
+    {
+      x: 683.5,
+      y: 8.5,
+    },
+    {
+      x: 447.5,
+      y: 30.5,
+    },
+    {
+      x: 335.5,
+      y: 158.5,
+    },
+    {
+      x: 335.5,
+      y: 269.5,
+    },
+    {
+      x: 315.5,
+      y: 315.5,
+    },
+    {
+      x: 257.5,
+      y: 359.5,
+    },
+    {
+      x: 142.5,
+      y: 379.5,
+    },
+    {
+      x: 78.5,
+      y: 406.5,
+    },
+    {
+      x: 36.5,
+      y: 445.5,
+    },
+    {
+      x: 16.5,
+      y: 522.5,
+    },
+    {
+      x: 20.5,
+      y: 630.5,
+    },
+    {
+      x: 41.5,
+      y: 698.5,
+    },
+    {
+      x: 91.5,
+      y: 731.5,
+    },
+    {
+      x: 149.5,
+      y: 740.5,
+    },
+  ],
+  [
+    {
+      x: 320.5,
+      y: 616.5,
+    },
+    {
+      x: 683.5,
+      y: 629.5,
+    },
+    {
+      x: 766.5,
+      y: 592.5,
+    },
+    {
+      x: 783.5,
+      y: 539.5,
+    },
+    {
+      x: 683.5,
+      y: 472.5,
+    },
+    {
+      x: 673.5,
+      y: 384.5,
+    },
+    {
+      x: 707.5,
+      y: 277.5,
+    },
+    {
+      x: 808.5,
+      y: 200.5,
+    },
+    {
+      x: 819.5,
+      y: 133.5,
+    },
+    {
+      x: 751.5,
+      y: 113.5,
+    },
+    {
+      x: 567.5,
+      y: 150.5,
+    },
+    {
+      x: 495.5,
+      y: 227.5,
+    },
+    {
+      x: 488.5,
+      y: 367.5,
+    },
+    {
+      x: 472.5,
+      y: 424.5,
+    },
+    {
+      x: 413.5,
+      y: 457.5,
+    },
+    {
+      x: 244.5,
+      y: 493.5,
+    },
+    {
+      x: 197.5,
+      y: 530.5,
+    },
+    {
+      x: 189.5,
+      y: 576.5,
+    },
+    {
+      x: 205.5,
+      y: 609.5,
+    },
+    {
+      x: 320.5,
+      y: 616.5,
+    },
+  ],
 ];
 
 /********************************************************************
@@ -59,10 +336,11 @@ function preload() {
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  var canvas = createCanvas(
-    windowWidth,
-    document.getElementById("sketch-holder").offsetHeight
-  );
+  // var canvas = createCanvas(
+  //   windowWidth,
+  //   document.getElementById("sketch-holder").offsetHeight
+  // );
+  var canvas = createCanvas(1000, 750);
   canvas.parent("sketch-holder");
 
   /*
@@ -75,9 +353,22 @@ function setup() {
 
   imageMode(CENTER);
   rectMode(CORNERS);
-  frameRate(60);
 
-  createBoxRaceTrack(50, 225);
+  createBoxRaceTrack(0);
+  //createBoxRaceTrack(150);
+
+  for (let i = 0; i < wallPoints.length; i++) {
+    for (let j = 0; j < wallPoints[i].length - 1; j++) {
+      walls.push(
+        new Wall(
+          wallPoints[i][j].x,
+          wallPoints[i][j].y,
+          wallPoints[i][j + 1].x,
+          wallPoints[i][j + 1].y
+        )
+      );
+    }
+  }
 
   // Dimensions for stats box when training
   stats_padding = 10;
@@ -103,17 +394,16 @@ function draw() {
       wall.show();
     }
 
-    // Debug checkpoints
     if (showCheckPoints) {
       push();
+      textSize(20);
+      textAlign(CENTER);
+      noStroke();
       checkpoints.map((c, i) => {
-        fill(255);
-        circle(c.x, c.y, checkpointSize);
-        noStroke();
+        fill(255, 125);
+        circle(c.x, c.y, checkpointSize * 2);
         fill(0);
-        textSize(20);
-        textAlign(CENTER);
-        text(i, c.x, c.y);
+        text(i + 1, c.x, c.y);
       });
       pop();
     }
@@ -158,21 +448,17 @@ function draw() {
  *********************************************************************
  *********************************************************************/
 
-function createBoxRaceTrack(a, b) {
-  const args = [...arguments];
-
-  args.forEach((z) => {
-    let topLeft = createVector(z, z);
-    let topRight = createVector(width - z, z);
-    let bottomLeft = createVector(z, height - z);
-    let bottomRight = createVector(width - z, height - z);
-    walls.push(
-      new Wall(topLeft.x, topLeft.y, topRight.x, topRight.y),
-      new Wall(topRight.x, topRight.y, bottomRight.x, bottomRight.y),
-      new Wall(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y),
-      new Wall(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y)
-    );
-  });
+function createBoxRaceTrack(z) {
+  let topLeft = createVector(z, z);
+  let topRight = createVector(width - z, z);
+  let bottomLeft = createVector(z, height - z);
+  let bottomRight = createVector(width - z, height - z);
+  walls.push(
+    new Wall(topLeft.x, topLeft.y, topRight.x, topRight.y),
+    new Wall(topRight.x, topRight.y, bottomRight.x, bottomRight.y),
+    new Wall(bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y),
+    new Wall(bottomLeft.x, bottomLeft.y, topLeft.x, topLeft.y)
+  );
 }
 
 function drawStatsBox() {
@@ -207,30 +493,6 @@ function drawStatsBox() {
 
 // `Mutation Rate: ${(MUTATION_RATE * 100).toFixed(2)}%\n` +
 
-function initializeRandomPopulation() {
-  updateAlert("");
-  state = "generation_training";
-  generation_num = 1;
-  population = [];
-  for (let i = 0; i < populationSize; i++) {
-    population.push(new AIVehicle());
-  }
-  populationAlive = populationSize;
-}
-
-function raceSavedVehicle() {
-  if (!saved_nn) {
-    console.log("No saved vehicle!");
-    updateAlert("No saved vehicle!");
-  } else {
-    state = "race";
-    population = [];
-    player = new PlayerVehicle();
-    population.push(new AIVehicle(saved_nn));
-    populationAlive = 1;
-  }
-}
-
 function getChosenVehicles() {
   chosen_vehicles = [];
   if (state == "player-drive") {
@@ -249,6 +511,17 @@ function getChosenVehicles() {
     if (population[0]) chosen_vehicles.push(population[0]);
   }
   return chosen_vehicles;
+}
+
+function initializeRandomPopulation() {
+  updateAlert("");
+  state = "generation_training";
+  generation_num = 1;
+  population = [];
+  for (let i = 0; i < populationSize; i++) {
+    population.push(new AIVehicle());
+  }
+  populationAlive = populationSize;
 }
 
 function newGeneration() {
@@ -327,17 +600,50 @@ function saveBestVehicle() {
   }
 }
 
-function mouseClicked() {
-  pointList.push([mouseX, mouseY]);
-  //   if (state == "generation_training") {
-  //     for (let i = 0; i < populationSize; i++) {
-  //       population[i].checkIfMouseOver();
-  //     }
-  //   }
+function raceSavedVehicle() {
+  if (!saved_nn) {
+    console.log("No saved vehicle!");
+    updateAlert("No saved vehicle!");
+  } else {
+    state = "race";
+    population = [];
+    player = new PlayerVehicle();
+    population.push(new AIVehicle(saved_nn));
+    chosen_vehicles = getChosenVehicles();
+    populationAlive = 1;
+  }
+}
 
-  //   if (state == "race") {
-  //     population[0].checkIfMouseOver();
-  //   }
+function mouseClicked() {
+  padding = 5;
+  if (mouseX < padding) {
+    mouseX = 0;
+  }
+  if (mouseX > width - padding) {
+    mouseX = width;
+  }
+  if (mouseY < padding) {
+    mouseY = 0;
+  }
+  if (mouseY > height - padding) {
+    mouseY = height;
+  }
+
+  console.log(mouseX, mouseY);
+
+  clickedPoints.push({ x: mouseX, y: mouseY });
+  wallPoints.push({ x: mouseX, y: mouseY });
+
+  // if (wallPoints.length >= 2) {
+  //   walls.push(
+  //     new Wall(
+  //       wallPoints[wallPoints.length - 1].x,
+  //       wallPoints[wallPoints.length - 1].y,
+  //       wallPoints[wallPoints.length - 2].x,
+  //       wallPoints[wallPoints.length - 2].y
+  //     )
+  //   );
+  // }
 }
 
 function keyPressed() {

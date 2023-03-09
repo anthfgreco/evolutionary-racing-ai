@@ -1,19 +1,12 @@
 class AIVehicle extends Vehicle {
   constructor(nn, showTrail = false) {
     super();
-    this.LAYER_SIZES = [10, 10, 4];
+    this.LAYER_SIZES = [8, 6, 4];
     if (nn) this.nn = nn;
     else this.nn = new NeuralNetwork(...this.LAYER_SIZES);
     this.fitness = 0;
     this.showTrail = showTrail;
     this.currentCheckpoint = 0;
-
-    // // Kill if not moving, saves computation
-    this.killIfNotMovingTimer = setTimeout(() => {
-      this.kill();
-      this.visible = false;
-      populationAlive--;
-    }, 2000);
   }
 
   update() {
@@ -28,10 +21,6 @@ class AIVehicle extends Vehicle {
     }
 
     //if (this.showTrail) this.drawTrail();
-
-    if (this.getVel() > 0.02) {
-      clearTimeout(this.killIfNotMovingTimer);
-    }
 
     this.think();
     // Old fitness function, not ideal because AI learns to drive in circles
