@@ -18,13 +18,24 @@ class AIVehicle extends Vehicle {
     if (hitWall) {
       this.kill();
       populationAlive--;
+      return;
+    }
+
+    // Kill the car if it's not moving
+    if (this.getVel() <= 0.1 && timer < timePerGeneration - 1) {
+      this.kill();
+      populationAlive--;
+      return;
     }
 
     //if (this.showTrail) this.drawTrail();
+    //this.drive();
 
     this.think();
+
     // Old fitness function, not ideal because AI learns to drive in circles
     //this.fitness += this.steeringPhysicsUpdate();
+
     this.steeringPhysicsUpdate();
     this.fitness += this.checkCheckpoint();
   }

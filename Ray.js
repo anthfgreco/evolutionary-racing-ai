@@ -24,9 +24,7 @@ class Ray {
     // const t2 = (y1 - y3) * (x3 - x4);
     const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
 
-    if (t < 0 || t > 1) {
-      return createVector(2000, 2000);
-    }
+    if (t < 0 || t > 1) return createVector(width, width);
 
     // const u1 = (x1 - x2) * (y1 - y3);
     // const u2 = (y1 - y2) * (x1 - x3);
@@ -35,7 +33,7 @@ class Ray {
     if (u > 0 && t > 0 && t < 1) {
       return createVector(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
     } else {
-      return createVector(2000, 2000);
+      return createVector(width, width);
     }
   }
 }

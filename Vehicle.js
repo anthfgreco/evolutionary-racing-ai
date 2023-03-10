@@ -6,7 +6,7 @@ class Vehicle {
     this.rays = [];
     this.numRays = 8;
     this.rayDistanceArray = [];
-    this.carScale = 0.6;
+    this.carScale = 0.5;
     this.visible = true;
 
     // Turning parameters. Tune these as you see fit.
@@ -18,14 +18,14 @@ class Vehicle {
     this.DRIFT_CONSTANT = 3; // sets the x-velocity threshold for no-drift <=> drift. Lower = drift sooner
 
     // Physical properties
-    this.d = createVector(width * 0.75, height * 0.85); // displacement (position)
+    this.d = createVector(width * 0.5, height * 0.9); // displacement (position)
     this.v = createVector(0, 0); // velocity (world-referenced)
     this.a = createVector(0, 0); // acceleration (world-referenced)
     this.angle = -PI / 2; // heading - the direction the car faces
     this.m = 10; // mass
     this.w = 22; // width of body (for animation)
     this.l = 50; // length of body (for animation)
-    this.f = 0.15; // Acceleration / braking force
+    this.f = 0.1; // Acceleration / braking force
     this.isDrifting = false; // Drift state
 
     // Colour variable - in an example the car colour changes when it loses traction
@@ -140,6 +140,8 @@ class Vehicle {
           closest.x,
           closest.y
         );
+      } else {
+        this.rayDistanceArray[i] = 2000;
       }
       if (closest && drawRays) {
         stroke(255, 75);

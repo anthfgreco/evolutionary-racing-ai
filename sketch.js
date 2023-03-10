@@ -1,331 +1,24 @@
-// Simulation constant variables
+// Simulation variables - to be able to be changed by user in future
 let populationSize = 50;
-let elitism = 0.05;
-let minMutationRate = 0.02;
-let maxMutationRate = 0.1;
-let timePerGeneration = 20;
+let mutationRateRange = [0.01, 0.1];
+let numChampions = 2;
+let timePerGeneration = 10;
 let simulationSpeed = 1;
-
 let drawRays = false;
-let showCheckPoints = true;
+let showCheckPoints = false;
 
-let saved_nn;
-
-let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
-
-// Simulation variables
 let generation_num = 1;
 let state = "player-drive";
-let population = [];
-let walls = [];
+let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
+let population = []; // population is an array of AIVehicle objects, sorted by greatest to least fitness
+let walls = []; // walls is an array that holds an array of Walls objects, each array is a continuous line
 let fps = 60;
 let averageSpeed = 0;
-let totalSpeed = 0;
 let populationAlive = populationSize;
 let timer = timePerGeneration;
-
-let checkpointSize = 90;
+let saved_nn;
+let checkpointSize = 110;
 let clickedPoints = [];
-let checkpoints = [
-  {
-    x: 807.5,
-    y: 631.5,
-  },
-  {
-    x: 851.5,
-    y: 538.5,
-  },
-  {
-    x: 810.5,
-    y: 462.5,
-  },
-  {
-    x: 757.5,
-    y: 418.5,
-  },
-  {
-    x: 773.5,
-    y: 317.5,
-  },
-  {
-    x: 873.5,
-    y: 230.5,
-  },
-  {
-    x: 908.5,
-    y: 139.5,
-  },
-  {
-    x: 848.5,
-    y: 68.5,
-  },
-  {
-    x: 744.5,
-    y: 56.5,
-  },
-  {
-    x: 626.5,
-    y: 48.5,
-  },
-  {
-    x: 502.5,
-    y: 88.5,
-  },
-  {
-    x: 436.5,
-    y: 148.5,
-  },
-  {
-    x: 411.5,
-    y: 248.5,
-  },
-  {
-    x: 405.5,
-    y: 350.5,
-  },
-  {
-    x: 316.5,
-    y: 408.5,
-  },
-  {
-    x: 193.5,
-    y: 426.5,
-  },
-  {
-    x: 132.5,
-    y: 495.5,
-  },
-  {
-    x: 125.5,
-    y: 635.5,
-  },
-  {
-    x: 223.5,
-    y: 684.5,
-  },
-  {
-    x: 356.5,
-    y: 675.5,
-  },
-  {
-    x: 491.5,
-    y: 688.5,
-  },
-  {
-    x: 654.5,
-    y: 675.5,
-  },
-];
-let wallPoints = [
-  [
-    {
-      x: 149.5,
-      y: 740.5,
-    },
-    {
-      x: 831.5,
-      y: 736.5,
-    },
-    {
-      x: 912.5,
-      y: 719.5,
-    },
-    {
-      x: 958.5,
-      y: 680.5,
-    },
-    {
-      x: 986.5,
-      y: 618.5,
-    },
-    {
-      x: 986.5,
-      y: 518.5,
-    },
-    {
-      x: 952.5,
-      y: 453.5,
-    },
-    {
-      x: 897.5,
-      y: 432.5,
-    },
-    {
-      x: 837.5,
-      y: 403.5,
-    },
-    {
-      x: 832.5,
-      y: 353.5,
-    },
-    {
-      x: 875.5,
-      y: 318.5,
-    },
-    {
-      x: 972.5,
-      y: 234.5,
-    },
-    {
-      x: 992.5,
-      y: 127.5,
-    },
-    {
-      x: 974.5,
-      y: 65.5,
-    },
-    {
-      x: 925.5,
-      y: 38.5,
-    },
-    {
-      x: 833.5,
-      y: 10.5,
-    },
-    {
-      x: 683.5,
-      y: 8.5,
-    },
-    {
-      x: 447.5,
-      y: 30.5,
-    },
-    {
-      x: 335.5,
-      y: 158.5,
-    },
-    {
-      x: 335.5,
-      y: 269.5,
-    },
-    {
-      x: 315.5,
-      y: 315.5,
-    },
-    {
-      x: 257.5,
-      y: 359.5,
-    },
-    {
-      x: 142.5,
-      y: 379.5,
-    },
-    {
-      x: 78.5,
-      y: 406.5,
-    },
-    {
-      x: 36.5,
-      y: 445.5,
-    },
-    {
-      x: 16.5,
-      y: 522.5,
-    },
-    {
-      x: 20.5,
-      y: 630.5,
-    },
-    {
-      x: 41.5,
-      y: 698.5,
-    },
-    {
-      x: 91.5,
-      y: 731.5,
-    },
-    {
-      x: 149.5,
-      y: 740.5,
-    },
-  ],
-  [
-    {
-      x: 320.5,
-      y: 616.5,
-    },
-    {
-      x: 683.5,
-      y: 629.5,
-    },
-    {
-      x: 766.5,
-      y: 592.5,
-    },
-    {
-      x: 783.5,
-      y: 539.5,
-    },
-    {
-      x: 683.5,
-      y: 472.5,
-    },
-    {
-      x: 673.5,
-      y: 384.5,
-    },
-    {
-      x: 707.5,
-      y: 277.5,
-    },
-    {
-      x: 808.5,
-      y: 200.5,
-    },
-    {
-      x: 819.5,
-      y: 133.5,
-    },
-    {
-      x: 751.5,
-      y: 113.5,
-    },
-    {
-      x: 567.5,
-      y: 150.5,
-    },
-    {
-      x: 495.5,
-      y: 227.5,
-    },
-    {
-      x: 488.5,
-      y: 367.5,
-    },
-    {
-      x: 472.5,
-      y: 424.5,
-    },
-    {
-      x: 413.5,
-      y: 457.5,
-    },
-    {
-      x: 244.5,
-      y: 493.5,
-    },
-    {
-      x: 197.5,
-      y: 530.5,
-    },
-    {
-      x: 189.5,
-      y: 576.5,
-    },
-    {
-      x: 205.5,
-      y: 609.5,
-    },
-    {
-      x: 320.5,
-      y: 616.5,
-    },
-  ],
-];
-
-/********************************************************************
- *********************************************************************
- *********************************************************************/
 
 function preload() {
   yellowCarImg = loadImage("img/yellowcar.png");
@@ -336,16 +29,11 @@ function preload() {
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  // var canvas = createCanvas(
-  //   windowWidth,
-  //   document.getElementById("sketch-holder").offsetHeight
-  // );
   var canvas = createCanvas(1000, 750);
   canvas.parent("sketch-holder");
 
   /*
   This one line increases the speed of the simulation by 2-3x. 
-
   CPU is dramatically faster than webgl in this case because my models are extremely small and 
   the overhead of transferring data to the GPU is surprisingly large.
   */
@@ -380,10 +68,6 @@ function setup() {
   player = new PlayerVehicle();
 }
 
-/********************************************************************
- *********************************************************************
- *********************************************************************/
-
 // Draw is ran every frame
 function draw() {
   for (let n = 0; n < simulationSpeed; n++) {
@@ -400,7 +84,7 @@ function draw() {
       textAlign(CENTER);
       noStroke();
       checkpoints.map((c, i) => {
-        fill(255, 125);
+        fill(255, 50);
         circle(c.x, c.y, checkpointSize * 2);
         fill(0);
         text(i + 1, c.x, c.y);
@@ -430,7 +114,7 @@ function draw() {
       if (timer == 0) {
         newGeneration();
       }
-      if (averageSpeed <= 0.02 && timer < timePerGeneration - 2) {
+      if (averageSpeed <= 0.05 && timer < timePerGeneration - 2) {
         newGeneration();
       }
     }
@@ -444,9 +128,83 @@ function draw() {
   }
 }
 
-/********************************************************************
- *********************************************************************
- *********************************************************************/
+function initializeRandomPopulation() {
+  updateAlert("");
+  state = "generation_training";
+  generation_num = 1;
+  population = [];
+  for (let i = 0; i < populationSize; i++) {
+    population.push(new AIVehicle());
+  }
+  populationAlive = populationSize;
+}
+
+function newGeneration() {
+  if (state == "player-drive") {
+    console.log("Initialize population first!");
+    updateAlert("Initialize a population first!");
+    return;
+  }
+
+  updateAlert("");
+  timer = timePerGeneration;
+  populationAlive = populationSize;
+  sortPopulationByFitness();
+  console.log(
+    "Gen " + generation_num + ": " + population[0].fitness + " fitness"
+  );
+
+  // Population length is 1 after a race
+  let numUnaltered = min(numChampions, population.length);
+
+  // Carry over to the next generation with no mutations (0 to numUnaltered)
+  for (let i = 0; i < numUnaltered; i++) {
+    population[i] = new AIVehicle(population[i].getNeuralNetwork());
+  }
+
+  // Mutate the rest of the population (numUnaltered to populationSize)
+  for (let i = numUnaltered; i < populationSize; i++) {
+    let pop_index = Math.floor(Math.random() * numUnaltered);
+    let nn = population[pop_index].getNeuralNetwork();
+    let variableMutation = map(
+      i,
+      numUnaltered,
+      populationSize - 1,
+      mutationRateRange[0],
+      mutationRateRange[1]
+    );
+    nn.mutate(variableMutation);
+    population[i] = new AIVehicle(nn);
+  }
+
+  generation_num++;
+  state = "generation_training";
+}
+
+function saveBestVehicle() {
+  if (state == "player-drive") {
+    console.log("Initialize a population first!");
+    updateAlert("Initialize a population first!");
+  }
+
+  if (state == "generation_training" || state == "race") {
+    saved_nn = population[0].getNeuralNetwork();
+    updateAlert("");
+  }
+}
+
+function raceSavedVehicle() {
+  if (!saved_nn) {
+    console.log("No saved vehicle!");
+    updateAlert("No saved vehicle!");
+  } else {
+    state = "race";
+    player = new PlayerVehicle();
+    population = [];
+    population.push(new AIVehicle(saved_nn));
+    populationAlive = 1;
+  }
+}
 
 function createBoxRaceTrack(z) {
   let topLeft = createVector(z, z);
@@ -491,127 +249,27 @@ function drawStatsBox() {
   pop();
 }
 
-// `Mutation Rate: ${(MUTATION_RATE * 100).toFixed(2)}%\n` +
-
-function getChosenVehicles() {
-  chosen_vehicles = [];
+function sortPopulationByFitness() {
   if (state == "player-drive") {
     console.log("Initialize population first!");
     updateAlert("Initialize population first!");
   }
-  if (state == "generation_training") {
+  if (state == "generation_training" || state == "race") {
     population.sort(function (a, b) {
       return b.fitness - a.fitness;
     });
-    for (let i = 0; i < populationSize * elitism; i++) {
-      chosen_vehicles.push(population[i]);
-    }
-  }
-  if (state == "race") {
-    if (population[0]) chosen_vehicles.push(population[0]);
-  }
-  return chosen_vehicles;
-}
-
-function initializeRandomPopulation() {
-  updateAlert("");
-  state = "generation_training";
-  generation_num = 1;
-  population = [];
-  for (let i = 0; i < populationSize; i++) {
-    population.push(new AIVehicle());
-  }
-  populationAlive = populationSize;
-}
-
-function newGeneration() {
-  if (state == "player-drive") {
-    console.log("Initialize population first!");
-    updateAlert("Initialize a population first!");
-    return;
-  }
-
-  timer = timePerGeneration;
-  updateAlert("");
-  generation_num++;
-  populationAlive = populationSize;
-
-  chosen_vehicles = getChosenVehicles();
-
-  console.log(
-    "Generation " + generation_num + " fitness: " + chosen_vehicles[0].fitness
-  );
-
-  // Copy and mutate its neural network for the entire population
-  // The chosen parent lives unmutated in the next generation (elitism)
-  if (chosen_vehicles.length == 1) {
-    population[0] = new AIVehicle(chosen_vehicles[0].getNeuralNetwork(), true);
-    for (let i = 1; i < populationSize; i++) {
-      let child_nn = chosen_vehicles[0].getNeuralNetwork();
-      variableMutation = map(
-        i,
-        1,
-        populationSize - 1,
-        minMutationRate,
-        maxMutationRate
-      );
-      child_nn.mutate(variableMutation);
-      population[i] = new AIVehicle(child_nn);
-    }
-  }
-  // Randomly pick two chosen vehicles and cross and mutate their neural networks
-  // Two of the chosen parents live unmutated in the next generation (elitism)
-  else {
-    population[0] = new AIVehicle(chosen_vehicles[0].getNeuralNetwork(), true);
-    population[1] = new AIVehicle(chosen_vehicles[1].getNeuralNetwork());
-    for (let i = 2; i < populationSize; i++) {
-      let parent_1 =
-        chosen_vehicles[Math.floor(Math.random() * chosen_vehicles.length)];
-      let parent_2 =
-        chosen_vehicles[Math.floor(Math.random() * chosen_vehicles.length)];
-      let nn_1 = parent_1.getNeuralNetwork();
-      let nn_2 = parent_2.getNeuralNetwork();
-      nn_1.crossover(nn_2);
-      variableMutation = map(
-        i,
-        2,
-        populationSize - 1,
-        minMutationRate,
-        maxMutationRate
-      );
-      nn_1.mutate(variableMutation);
-      population[i] = new AIVehicle(nn_1);
-    }
-  }
-
-  state = "generation_training";
-}
-
-function saveBestVehicle() {
-  if (state == "player-drive") {
-    console.log("Initialize a population first!");
-    updateAlert("Initialize a population first!");
-  }
-
-  if (state == "generation_training" || state == "race") {
-    chosen_vehicles = getChosenVehicles();
-    saved_nn = chosen_vehicles[0].getNeuralNetwork();
-    updateAlert("");
   }
 }
 
-function raceSavedVehicle() {
-  if (!saved_nn) {
-    console.log("No saved vehicle!");
-    updateAlert("No saved vehicle!");
-  } else {
-    state = "race";
-    population = [];
-    player = new PlayerVehicle();
-    population.push(new AIVehicle(saved_nn));
-    chosen_vehicles = getChosenVehicles();
-    populationAlive = 1;
-  }
+function updateAlert(text) {
+  $("#alert-div").text(text);
+}
+
+function getRandomInt(min, max) {
+  // The maximum is exclusive and the minimum is inclusive
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 function mouseClicked() {
@@ -634,7 +292,7 @@ function mouseClicked() {
   clickedPoints.push({ x: mouseX, y: mouseY });
   wallPoints.push({ x: mouseX, y: mouseY });
 
-  // if (wallPoints.length >= 2) {
+  // if (clickedPoints.length >= 2) {
   //   walls.push(
   //     new Wall(
   //       wallPoints[wallPoints.length - 1].x,
@@ -662,8 +320,4 @@ function keyPressed() {
       raceSavedVehicle();
       break;
   }
-}
-
-function updateAlert(text) {
-  $("#alert-div").text(text);
 }
