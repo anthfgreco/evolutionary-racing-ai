@@ -128,27 +128,21 @@ function draw() {
   }
 }
 
-function initializeRandomPopulation() {
-  updateAlert("");
-  state = "generation_training";
-  generation_num = 1;
-  population = [];
-  for (let i = 0; i < populationSize; i++) {
-    population.push(new AIVehicle());
-  }
-  populationAlive = populationSize;
-}
-
 function newGeneration() {
-  if (state == "player-drive") {
-    console.log("Initialize population first!");
-    updateAlert("Initialize a population first!");
-    return;
-  }
-
   updateAlert("");
   timer = timePerGeneration;
   populationAlive = populationSize;
+
+  if (state == "player-drive") {
+    generation_num = 1;
+    population = [];
+    for (let i = 0; i < populationSize; i++) {
+      population.push(new AIVehicle());
+    }
+    state = "generation_training";
+    return;
+  }
+
   sortPopulationByFitness();
   console.log(
     "Gen " + generation_num + ": " + population[0].fitness + " fitness"
@@ -177,8 +171,8 @@ function newGeneration() {
     population[i] = new AIVehicle(nn);
   }
 
-  generation_num++;
   state = "generation_training";
+  generation_num++;
 }
 
 function saveBestVehicle() {
@@ -188,6 +182,7 @@ function saveBestVehicle() {
   }
 
   if (state == "generation_training" || state == "race") {
+    sortPopulationByFitness();
     saved_nn = population[0].getNeuralNetwork();
     updateAlert("");
   }
@@ -201,8 +196,9 @@ function raceSavedVehicle() {
     state = "race";
     player = new PlayerVehicle();
     population = [];
-    population.push(new AIVehicle(saved_nn));
+    population[0] = new AIVehicle(saved_nn);
     populationAlive = 1;
+    timer = Infinity;
   }
 }
 
@@ -250,15 +246,9 @@ function drawStatsBox() {
 }
 
 function sortPopulationByFitness() {
-  if (state == "player-drive") {
-    console.log("Initialize population first!");
-    updateAlert("Initialize population first!");
-  }
-  if (state == "generation_training" || state == "race") {
-    population.sort(function (a, b) {
-      return b.fitness - a.fitness;
-    });
-  }
+  population.sort(function (a, b) {
+    return b.fitness - a.fitness;
+  });
 }
 
 function updateAlert(text) {
@@ -274,18 +264,10 @@ function getRandomInt(min, max) {
 
 function mouseClicked() {
   padding = 5;
-  if (mouseX < padding) {
-    mouseX = 0;
-  }
-  if (mouseX > width - padding) {
-    mouseX = width;
-  }
-  if (mouseY < padding) {
-    mouseY = 0;
-  }
-  if (mouseY > height - padding) {
-    mouseY = height;
-  }
+  if (mouseX < padding) mouseX = 0;
+  if (mouseX > width - padding) mouseX = width;
+  if (mouseY < padding) mouseY = 0;
+  if (mouseY > height - padding) mouseY = height;
 
   console.log(mouseX, mouseY);
 
@@ -307,9 +289,6 @@ function mouseClicked() {
 function keyPressed() {
   key = key.toUpperCase();
   switch (key) {
-    case "I":
-      initializeRandomPopulation();
-      break;
     case "G":
       newGeneration();
       break;

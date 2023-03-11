@@ -1,9 +1,13 @@
 class AIVehicle extends Vehicle {
   constructor(nn, showTrail = false) {
     super();
-    this.LAYER_SIZES = [8, 6, 4];
+
+    // input: x velocity, y velocity, 6 ray distances
+    // output: left, right (AI is forced to always have foot on gas to encourage drifting rather than slow driving)
+    this.LAYER_SIZES = [8, 6, 2];
     if (nn) this.nn = nn;
     else this.nn = new NeuralNetwork(...this.LAYER_SIZES);
+
     this.fitness = 0;
     this.showTrail = showTrail;
     this.currentCheckpoint = 0;
@@ -29,7 +33,7 @@ class AIVehicle extends Vehicle {
     }
 
     //if (this.showTrail) this.drawTrail();
-    //this.drive();
+    this.drive();
 
     this.think();
 
@@ -63,6 +67,8 @@ class AIVehicle extends Vehicle {
   think() {
     let inputs = [];
 
+    inputs.push(this.v.x);
+    inputs.push(this.v.y);
     inputs = inputs.concat(this.rayDistanceArray);
 
     // Argmax
@@ -76,15 +82,6 @@ class AIVehicle extends Vehicle {
       case 1:
         this.rotateRight();
         break;
-      case 2:
-        // do nothing
-        break;
-      case 3:
-        this.drive();
-        break;
-      // case 4:
-      //   this.brake();
-      //   break;
     }
   }
 }

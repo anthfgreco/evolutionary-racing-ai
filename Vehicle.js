@@ -4,7 +4,7 @@ class Vehicle {
   constructor() {
     this.alive = true;
     this.rays = [];
-    this.numRays = 8;
+    this.numRays = 6;
     this.rayDistanceArray = [];
     this.carScale = 0.5;
     this.visible = true;
@@ -225,7 +225,7 @@ class Vehicle {
     if (this.trail.length > this.trailLength) this.trail.splice(0, 1);
 
     // Render the car's trail. Change color of trail depending on whether drifting or not.
-    strokeWeight(4);
+    strokeWeight(3);
     for (let p of this.trail) {
       // Colour the trail to show when drifting
       if (p.drifting) {
