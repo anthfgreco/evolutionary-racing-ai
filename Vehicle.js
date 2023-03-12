@@ -3,9 +3,15 @@
 class Vehicle {
   constructor() {
     this.alive = true;
-    this.rays = [];
     this.numRays = 6;
+
+    this.rays = [];
     this.rayDistanceArray = [];
+    for (let i = 0; i < this.numRays; i++) {
+      this.rays[i] = new Ray(createVector(0, 0), 0);
+      this.rayDistanceArray[i] = 0;
+    }
+
     this.carScale = 0.5;
     this.visible = true;
 
@@ -110,12 +116,12 @@ class Vehicle {
   }
 
   look(walls) {
-    this.rayDistanceArray = [];
     let i = 0;
 
     for (let i = 0; i < this.numRays; i++) {
       let angleOffset = map(i, 0, this.numRays - 1, 0, PI);
-      this.rays[i] = new Ray(this.d, this.angle + angleOffset);
+      this.rays[i].setPos(this.d);
+      this.rays[i].setAngle(this.angle + angleOffset);
     }
 
     for (let ray of this.rays) {
@@ -150,8 +156,6 @@ class Vehicle {
       }
       i = i + 1;
     }
-
-    this.rays = [];
 
     // Check if car is in collision using distance to walls
     // let hitboxSize = 16;

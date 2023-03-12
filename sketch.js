@@ -156,10 +156,10 @@ function newGeneration() {
     population[i] = new AIVehicle(population[i].getNeuralNetwork());
   }
 
-  // Mutate the rest of the population (numUnaltered to populationSize)
+  // The rest of the population will be mutations of the champions (numUnaltered to populationSize)
   for (let i = numUnaltered; i < populationSize; i++) {
-    let pop_index = Math.floor(Math.random() * numUnaltered);
-    let nn = population[pop_index].getNeuralNetwork();
+    let championIndex = Math.floor(Math.random() * numUnaltered);
+    let nn = population[championIndex].getNeuralNetwork();
     let variableMutation = map(
       i,
       numUnaltered,
