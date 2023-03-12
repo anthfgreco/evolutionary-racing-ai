@@ -31,21 +31,25 @@ class NeuralNetwork {
     });
   }
 
-  mutate(rate) {
+  mutate(mutationProbability, mutationAmount) {
     tf.tidy(() => {
       const weights = this.model.getWeights();
       const mutatedWeights = [];
 
       for (let i = 0; i < weights.length; i++) {
-        let tensor = weights[i];
-        let shape = weights[i].shape;
-        let values = tensor.dataSync().slice();
-        for (let j = 0; j < values.length; j++) {
-          if (random(1) < rate) {
-            values[j] += randomGaussian();
-          }
-        }
-        mutatedWeights[i] = tf.tensor(values, shape);
+        const tensor = weights[i];
+        const shape = tensor.shape;
+
+        // Gene mutation probability
+        const mask = tf.randomUniform(shape).less(mutationProbability);
+
+        // Gene mutation amount (with .mul(rate))
+        const noise = tf.randomNormal(shape).mul(mutationAmount); //.mul(rate);
+
+        // Add noise where mask is true
+        const mutated = tf.where(mask, tensor.add(noise), tensor);
+
+        mutatedWeights.push(mutated);
       }
 
       this.model.setWeights(mutatedWeights);
@@ -59,15 +63,14 @@ class NeuralNetwork {
       const crossWeights = [];
 
       for (let i = 0; i < weights.length; i++) {
-        let shape = weights[i].shape;
-        let values = weights[i].dataSync().slice();
-        let pValues = partnerWeights[i].dataSync().slice();
-        for (let j = 0; j < values.length; j++) {
-          if (random(1) < 0.5) {
-            values[j] = pValues[j];
-          }
-        }
-        crossWeights[i] = tf.tensor(values, shape);
+        const shape = weights[i].shape;
+
+        const mask = tf.randomUniform(shape).less(0.5);
+
+        // Combine genes from this model and partner model
+        const cross = tf.where(mask, partnerWeights[i], weights[i]);
+
+        crossWeights.push(cross);
       }
 
       this.model.setWeights(crossWeights);

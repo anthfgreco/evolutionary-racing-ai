@@ -1,11 +1,12 @@
 // Simulation variables - to be able to be changed by user in future
 let populationSize = 50;
-let mutationRateRange = [0.01, 0.1];
+let mutationProbability = 0.1;
+let mutationAmount = 0.5;
 let numChampions = 2;
 let timePerGeneration = 10;
 let simulationSpeed = 1;
 let drawRays = false;
-let showCheckPoints = false;
+let drawCheckpoints = false;
 
 let generation_num = 1;
 let state = "player-drive";
@@ -78,7 +79,7 @@ function draw() {
       w.show();
     });
 
-    if (showCheckPoints) {
+    if (drawCheckpoints) {
       push();
       textSize(20);
       textAlign(CENTER);
@@ -160,14 +161,14 @@ function newGeneration() {
   for (let i = numUnaltered; i < populationSize; i++) {
     let championIndex = Math.floor(Math.random() * numUnaltered);
     let nn = population[championIndex].getNeuralNetwork();
-    let variableMutation = map(
-      i,
-      numUnaltered,
-      populationSize - 1,
-      mutationRateRange[0],
-      mutationRateRange[1]
-    );
-    nn.mutate(variableMutation);
+    // let variableMutation = map(
+    //   i,
+    //   numUnaltered,
+    //   populationSize - 1,
+    //   mutationRateRange[0],
+    //   mutationRateRange[1]
+    // );
+    nn.mutate(mutationProbability, mutationAmount);
     population[i] = new AIVehicle(nn);
   }
 
