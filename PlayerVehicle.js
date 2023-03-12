@@ -14,10 +14,10 @@ class PlayerVehicle extends Vehicle {
       this.kill();
     }
 
+    this.drive();
+
     if (keyIsDown(LEFT_ARROW)) this.rotateLeft();
     else if (keyIsDown(RIGHT_ARROW)) this.rotateRight();
-    else if (keyIsDown(UP_ARROW)) this.drive();
-    else if (keyIsDown(DOWN_ARROW)) this.brake();
 
     this.steeringPhysicsUpdate();
   }

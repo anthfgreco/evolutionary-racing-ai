@@ -9,7 +9,7 @@ let drawRays = false;
 let drawCheckpoints = false;
 
 let generation_num = 1;
-let state = "player-drive";
+let state = "generation_training";
 let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
 let population = []; // population is an array of AIVehicle objects, sorted by greatest to least fitness
 let walls = []; // walls is an array that holds an array of Walls objects, each array is a continuous line
@@ -67,6 +67,7 @@ function setup() {
   stats_y2 = stats_y1 + 140;
 
   player = new PlayerVehicle();
+  newGeneration();
 }
 
 // Draw is ran every frame
@@ -134,7 +135,7 @@ function newGeneration() {
   timer = timePerGeneration;
   populationAlive = populationSize;
 
-  if (state == "player-drive") {
+  if (population.length == 0) {
     generation_num = 1;
     population = [];
     for (let i = 0; i < populationSize; i++) {
@@ -145,6 +146,7 @@ function newGeneration() {
   }
 
   sortPopulationByFitness();
+
   console.log(
     "Gen " + generation_num + ": " + population[0].fitness + " fitness"
   );
@@ -176,31 +178,17 @@ function newGeneration() {
   generation_num++;
 }
 
-function saveBestVehicle() {
-  if (state == "player-drive") {
-    console.log("Initialize a population first!");
-    updateAlert("Initialize a population first!");
-  }
+function raceBestVehicle() {
+  state = "race";
 
-  if (state == "generation_training" || state == "race") {
-    sortPopulationByFitness();
-    saved_nn = population[0].getNeuralNetwork();
-    updateAlert("");
-  }
-}
+  sortPopulationByFitness();
+  saved_nn = population[0].getNeuralNetwork();
 
-function raceSavedVehicle() {
-  if (!saved_nn) {
-    console.log("No saved vehicle!");
-    updateAlert("No saved vehicle!");
-  } else {
-    state = "race";
-    player = new PlayerVehicle();
-    population = [];
-    population[0] = new AIVehicle(saved_nn, true);
-    populationAlive = 1;
-    timer = Infinity;
-  }
+  player = new PlayerVehicle();
+  population = [];
+  population[0] = new AIVehicle(saved_nn, true);
+  populationAlive = 1;
+  timer = Infinity;
 }
 
 function createBoxRaceTrack(z) {
@@ -274,7 +262,8 @@ function mouseClicked() {
 
   clickedPoints.push({ x: mouseX, y: mouseY });
 
-  // if (clickedPoints.length >= 2) {
+  // wallPoints.push({ x: mouseX, y: mouseY });
+  // if (clickedPoints.length > 1) {
   //   walls.push(
   //     new Wall(
   //       wallPoints[wallPoints.length - 1].x,
@@ -292,11 +281,8 @@ function keyPressed() {
     case "G":
       newGeneration();
       break;
-    case "S":
-      saveBestVehicle();
-      break;
     case "R":
-      raceSavedVehicle();
+      raceBestVehicle();
       break;
   }
 }
