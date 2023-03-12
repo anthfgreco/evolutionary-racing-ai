@@ -1,6 +1,7 @@
 class PlayerVehicle extends Vehicle {
   constructor() {
     super();
+    this.showTrail = true;
   }
 
   update() {
@@ -19,6 +20,5 @@ class PlayerVehicle extends Vehicle {
     else if (keyIsDown(DOWN_ARROW)) this.brake();
 
     this.steeringPhysicsUpdate();
-    this.drawTrail();
   }
 }

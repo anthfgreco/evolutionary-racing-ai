@@ -6,9 +6,9 @@ class Vehicle {
     this.numRays = 6;
 
     this.rays = [];
-    this.rayDistanceArray = [];
+    this.rayDistanceArray = new Float32Array(this.numRays);
     for (let i = 0; i < this.numRays; i++) {
-      this.rays[i] = new Ray(createVector(0, 0), 0);
+      this.rays[i] = new Ray();
       this.rayDistanceArray[i] = 0;
     }
 
@@ -40,6 +40,8 @@ class Vehicle {
     // Trail variables
     this.trail = [];
     this.trailLength = 150;
+
+    this.hitboxSize = (this.l * this.carScale) / 3;
   }
 
   getPos() {
@@ -57,6 +59,8 @@ class Vehicle {
 
   show() {
     if (!this.visible) return;
+
+    if (this.showTrail) this.drawTrail();
 
     // Centre on the car, rotate
     push();
@@ -116,51 +120,44 @@ class Vehicle {
   }
 
   look(walls) {
-    let i = 0;
-
     for (let i = 0; i < this.numRays; i++) {
       let angleOffset = map(i, 0, this.numRays - 1, 0, PI);
-      this.rays[i].setPos(this.d);
-      this.rays[i].setAngle(this.angle + angleOffset);
-    }
+      const ray = this.rays[i];
+      ray.setPos(this.d);
+      ray.setAngle(this.angle + angleOffset);
 
-    for (let ray of this.rays) {
       let closest = null;
       let record = Infinity;
 
-      for (let wall of walls) {
-        let pt = ray.cast(wall);
+      for (let j = 0; j < walls.length; j++) {
+        const wall = walls[j];
+        const pt = ray.cast(wall);
         if (pt) {
-          const d = p5.Vector.dist(this.d, pt);
-          if (d < record) {
+          //const d = p5.Vector.dist(this.d, pt);
+          // Calculate distsq to avoid sqrt
+          const dSq = (this.d.x - pt.x) ** 2 + (this.d.y - pt.y) ** 2;
+          if (dSq < record) {
             closest = pt;
-            record = d;
+            record = dSq;
           }
         }
       }
 
       if (closest) {
-        this.rayDistanceArray[i] = dist(
-          this.d.x,
-          this.d.y,
-          closest.x,
-          closest.y
-        );
+        this.rayDistanceArray[i] = Math.sqrt(record);
       } else {
         this.rayDistanceArray[i] = 2000;
       }
+
       if (closest && drawRays) {
         stroke(255, 75);
         strokeWeight(3);
         line(this.d.x, this.d.y, closest.x, closest.y);
       }
-      i = i + 1;
     }
 
     // Check if car is in collision using distance to walls
-    // let hitboxSize = 16;
-    let hitboxSize = (this.l * this.carScale) / 3;
-    return this.rayDistanceArray.filter((x) => x < hitboxSize).length > 0;
+    return this.rayDistanceArray.filter((x) => x < this.hitboxSize).length > 0;
   }
 
   steeringPhysicsUpdate() {

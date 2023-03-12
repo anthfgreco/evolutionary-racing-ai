@@ -74,9 +74,9 @@ function draw() {
     background(40);
     if (frameCount % 60 == 0 && timer > 0) timer--;
 
-    for (let wall of walls) {
-      wall.show();
-    }
+    walls.forEach((w) => {
+      w.show();
+    });
 
     if (showCheckPoints) {
       push();
@@ -196,7 +196,7 @@ function raceSavedVehicle() {
     state = "race";
     player = new PlayerVehicle();
     population = [];
-    population[0] = new AIVehicle(saved_nn);
+    population[0] = new AIVehicle(saved_nn, true);
     populationAlive = 1;
     timer = Infinity;
   }
@@ -272,7 +272,6 @@ function mouseClicked() {
   console.log(mouseX, mouseY);
 
   clickedPoints.push({ x: mouseX, y: mouseY });
-  wallPoints.push({ x: mouseX, y: mouseY });
 
   // if (clickedPoints.length >= 2) {
   //   walls.push(

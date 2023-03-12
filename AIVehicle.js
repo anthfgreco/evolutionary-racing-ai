@@ -2,11 +2,26 @@ class AIVehicle extends Vehicle {
   constructor(nn, showTrail = false) {
     super();
 
-    // input: x velocity, y velocity, 6 ray distances
-    // output: left, right (AI is forced to always have foot on gas to encourage drifting rather than slow driving)
+    /*
+    The AI evolves extremely quickly with this configuration
+    AI is forced to have foot on gas to encourage fast driving + drifting, makes evolution dramatically faster
+
+    Input: 
+    x velocity, 
+    y velocity, 
+    6 ray distances
+
+    Hidden:
+    6
+
+    Output: 
+    steer left, 
+    steer right
+    */
     this.LAYER_SIZES = [8, 6, 2];
     if (nn) this.nn = nn;
     else this.nn = new NeuralNetwork(...this.LAYER_SIZES);
+    this.inputs = new Float32Array(this.LAYER_SIZES[0]);
 
     this.fitness = 0;
     this.showTrail = showTrail;
@@ -32,7 +47,6 @@ class AIVehicle extends Vehicle {
       return;
     }
 
-    //if (this.showTrail) this.drawTrail();
     this.drive();
 
     this.think();
@@ -65,14 +79,15 @@ class AIVehicle extends Vehicle {
   }
 
   think() {
-    let inputs = [];
+    this.inputs[0] = this.v.x;
+    this.inputs[1] = this.v.y;
 
-    inputs.push(this.v.x);
-    inputs.push(this.v.y);
-    inputs = inputs.concat(this.rayDistanceArray);
+    for (let i = 0; i < this.rayDistanceArray.length; i++) {
+      this.inputs[i + 2] = this.rayDistanceArray[i];
+    }
 
     // Argmax
-    let output = this.nn.predict(inputs);
+    let output = this.nn.predict(this.inputs);
     let predictedAction = output.indexOf(Math.max(...output));
 
     switch (predictedAction) {
