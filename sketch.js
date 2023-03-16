@@ -258,7 +258,7 @@ function mouseClicked() {
   if (mouseY < padding) mouseY = 0;
   if (mouseY > height - padding) mouseY = height;
 
-  console.log(mouseX, mouseY);
+  //console.log(mouseX, mouseY);
 
   clickedPoints.push({ x: mouseX, y: mouseY });
 

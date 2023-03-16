@@ -25,20 +25,20 @@ class Ray {
 
     const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
 
-    if (den === 0) return null;
+    if (den === 0) return false;
 
     const invDen = 1 / den;
 
     const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) * invDen;
 
-    if (t < 0 || t > 1) return createVector(width, width);
+    if (t < 0 || t > 1) return false;
 
     const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) * invDen;
 
-    if (u > 0 && t > 0 && t < 1) {
+    if (u > 0) {
       return createVector(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
     } else {
-      return createVector(width, width);
+      return false;
     }
   }
 }

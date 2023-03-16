@@ -109,12 +109,6 @@ class Vehicle {
     this.a = createVector(0, 0);
   }
 
-  // checkIfMouseOver() {
-  //   if (dist(this.d.x, this.d.y, mouseX, mouseY) < 35) {
-  //     this.selected = !this.selected;
-  //   }
-  // }
-
   getCurrentSpeed() {
     return this.currentSpeed;
   }
@@ -126,33 +120,31 @@ class Vehicle {
       ray.setPos(this.d);
       ray.setAngle(this.angle + angleOffset);
 
-      let closest = null;
-      let record = Infinity;
+      let closestPt = null;
+      let shortestDist = Infinity;
 
       for (let j = 0; j < walls.length; j++) {
         const wall = walls[j];
         const pt = ray.cast(wall);
         if (pt) {
-          //const d = p5.Vector.dist(this.d, pt);
-          // Calculate distsq to avoid sqrt
-          const dSq = (this.d.x - pt.x) ** 2 + (this.d.y - pt.y) ** 2;
-          if (dSq < record) {
-            closest = pt;
-            record = dSq;
+          const distSq = (this.d.x - pt.x) ** 2 + (this.d.y - pt.y) ** 2;
+          if (distSq < shortestDist) {
+            closestPt = pt;
+            shortestDist = distSq;
           }
         }
       }
 
-      if (closest) {
-        this.rayDistanceArray[i] = Math.sqrt(record);
+      if (closestPt) {
+        this.rayDistanceArray[i] = Math.sqrt(shortestDist);
       } else {
         this.rayDistanceArray[i] = 2000;
       }
 
-      if (closest && drawRays) {
+      if (closestPt && drawRays) {
         stroke(255, 75);
         strokeWeight(3);
-        line(this.d.x, this.d.y, closest.x, closest.y);
+        line(this.d.x, this.d.y, closestPt.x, closestPt.y);
       }
     }
 
