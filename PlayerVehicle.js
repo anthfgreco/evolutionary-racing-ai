@@ -1,7 +1,6 @@
 class PlayerVehicle extends Vehicle {
   constructor() {
     super();
-    this.showTrail = true;
   }
 
   update() {

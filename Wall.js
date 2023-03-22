@@ -5,8 +5,10 @@ class Wall {
   }
 
   show() {
-    strokeWeight(2);
-    stroke(255);
+    push();
+    strokeWeight(7);
+    stroke("#1F2022");
     line(this.a.x, this.a.y, this.b.x, this.b.y);
+    pop();
   }
 }

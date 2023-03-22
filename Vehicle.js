@@ -25,6 +25,7 @@ class Vehicle {
 
     // Physical properties
     this.d = createVector(width * 0.5, height * 0.9); // displacement (position)
+    this.lastd = this.d.copy(); // last displacement (position)
     this.v = createVector(0, 0); // velocity (world-referenced)
     this.a = createVector(0, 0); // acceleration (world-referenced)
     this.angle = -PI / 2; // heading - the direction the car faces
@@ -33,13 +34,6 @@ class Vehicle {
     this.l = 50; // length of body (for animation)
     this.f = 0.1; // Acceleration / braking force
     this.isDrifting = false; // Drift state
-
-    // Colour variable - in an example the car colour changes when it loses traction
-    this.col = color(255, 255, 255);
-
-    // Trail variables
-    this.trail = [];
-    this.trailLength = 150;
 
     this.hitboxSize = (this.l * this.carScale) / 3;
   }
@@ -60,26 +54,68 @@ class Vehicle {
   show() {
     if (!this.visible) return;
 
-    if (this.showTrail) this.drawTrail();
+    if (this.isDrift()) {
+      extraCanvas.push();
 
-    // Centre on the car, rotate
+      let offset = (this.w * this.carScale) / 3;
+      extraCanvas.strokeWeight(2);
+      extraCanvas.stroke(0, 50);
+
+      // extraCanvas.line(
+      //   this.lastd.x + offset,
+      //   this.lastd.y + offset,
+      //   this.d.x + offset,
+      //   this.d.y + offset
+      // );
+      // extraCanvas.line(
+      //   this.lastd.x - offset,
+      //   this.lastd.y - offset,
+      //   this.d.x - offset,
+      //   this.d.y - offset
+      // );
+      // extraCanvas.line(
+      //   this.lastd.x - offset,
+      //   this.lastd.y + offset,
+      //   this.d.x - offset,
+      //   this.d.y + offset
+      // );
+      // extraCanvas.line(
+      //   this.lastd.x + offset,
+      //   this.lastd.y - offset,
+      //   this.d.x + offset,
+      //   this.d.y - offset
+      // );
+
+      extraCanvas.point(this.d.x + offset, this.d.y + offset);
+      extraCanvas.point(this.d.x + offset, this.d.y - offset);
+      extraCanvas.point(this.d.x - offset, this.d.y + offset);
+      extraCanvas.point(this.d.x - offset, this.d.y - offset);
+
+      extraCanvas.pop();
+    }
+
+    this.lastd = this.d.copy();
+
     push();
+
+    // Center on the car, rotate
+    imageMode(CENTER);
     rectMode(CENTER);
     translate(this.d.x, this.d.y);
     rotate(this.angle);
     stroke(0);
     strokeWeight(1);
-    fill(this.col);
     scale(this.carScale);
     // Draw car
     //rect(0, 0, this.w, this.l); // Car body
     //rect(0, this.l / 2, 4, 4); // Indicate front side
 
-    if (this.nn == null) {
-      image(blueCarImg, 0, 0);
-    } else {
+    if (this.nn) {
       image(yellowCarImg, 0, 0);
+    } else {
+      image(sportsCarImg, 0, 0);
     }
+
     pop();
   }
 
@@ -105,6 +141,7 @@ class Vehicle {
 
   kill() {
     this.alive = false;
+    this.isDrifting = false;
     this.v = createVector(0, 0);
     this.a = createVector(0, 0);
   }
@@ -142,9 +179,11 @@ class Vehicle {
       }
 
       if (closestPt && drawRays) {
+        push();
         stroke(255, 75);
         strokeWeight(3);
         line(this.d.x, this.d.y, closestPt.x, closestPt.y);
+        pop();
       }
     }
 
@@ -206,32 +245,5 @@ class Vehicle {
       v.x * sin(ang) - v.y * cos(ang)
     );
     return vn;
-  }
-
-  drawTrail() {
-    let nowDrifting = this.isDrift();
-    this.trail.push({
-      position: this.getPos(), // A vector(x,y)
-      drifting: nowDrifting, // true / false
-    });
-
-    if (this.trail.length > this.trailLength) this.trail.splice(0, 1);
-
-    // Render the car's trail. Change color of trail depending on whether drifting or not.
-    strokeWeight(3);
-    for (let p of this.trail) {
-      // Colour the trail to show when drifting
-      if (p.drifting) {
-        stroke(0);
-      } else {
-        stroke(100);
-      }
-      // let offset = 7;
-      let offset = (this.w * this.carScale) / 3;
-      point(p.position.x - offset, p.position.y - offset);
-      point(p.position.x + offset, p.position.y + offset);
-      point(p.position.x + offset, p.position.y - offset);
-      point(p.position.x - offset, p.position.y + offset);
-    }
   }
 }

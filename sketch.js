@@ -1,4 +1,4 @@
-// Simulation variables - to be able to be changed by user in future
+// Simulation variables - able to be changed by user in future
 let populationSize = 50;
 let mutationProbability = 0.1;
 let mutationAmount = 0.5;
@@ -8,30 +8,36 @@ let simulationSpeed = 1;
 let drawRays = false;
 let drawCheckpoints = false;
 
+let extraCanvas;
 let generation_num = 1;
 let state = "generation_training";
 let stats_padding, stats_x1, stats_y1, stats_x2, stats_y2;
-let population = []; // population is an array of AIVehicle objects, sorted by greatest to least fitness
-let walls = []; // walls is an array that holds an array of Walls objects, each array is a continuous line
 let fps = 60;
 let averageSpeed = 0;
 let populationAlive = populationSize;
 let timer = timePerGeneration;
 let saved_nn;
-let checkpointSize = 110;
+let checkpointSize = 80;
+
 let clickedPoints = [];
+
+// array of AIVehicle objects, sorted by greatest to least fitness
+let population = [];
+
+// 2D array of Wall objects, each array represents a continuous line
+let walls = [];
 
 function preload() {
   yellowCarImg = loadImage("img/yellowcar.png");
-  redCarImg = loadImage("img/redcar.png");
   blueCarImg = loadImage("img/bluecar.png");
-  whiteCarImg = loadImage("img/whitecar.png");
+  sportsCarImg = loadImage("img/SportsRacingCar_1.png");
 }
 
 // Setup is ran once at the beginning of the page being loaded
 function setup() {
-  var canvas = createCanvas(1000, 750);
+  let canvas = createCanvas(1000, 750);
   canvas.parent("sketch-holder");
+  extraCanvas = createGraphics(1000, 750);
 
   /*
   This one line increases the speed of the simulation by 2-3x. 
@@ -40,11 +46,7 @@ function setup() {
   */
   tf.setBackend("cpu");
 
-  imageMode(CENTER);
-  rectMode(CORNERS);
-
   createBoxRaceTrack(0);
-  //createBoxRaceTrack(150);
 
   for (let i = 0; i < wallPoints.length; i++) {
     for (let j = 0; j < wallPoints[i].length - 1; j++) {
@@ -73,7 +75,8 @@ function setup() {
 // Draw is ran every frame
 function draw() {
   for (let n = 0; n < simulationSpeed; n++) {
-    background(40);
+    background("#CCC9C0");
+    image(extraCanvas, 0, 0);
     if (frameCount % 60 == 0 && timer > 0) timer--;
 
     walls.forEach((w) => {
@@ -163,13 +166,6 @@ function newGeneration() {
   for (let i = numUnaltered; i < populationSize; i++) {
     let championIndex = Math.floor(Math.random() * numUnaltered);
     let nn = population[championIndex].getNeuralNetwork();
-    // let variableMutation = map(
-    //   i,
-    //   numUnaltered,
-    //   populationSize - 1,
-    //   mutationRateRange[0],
-    //   mutationRateRange[1]
-    // );
     nn.mutate(mutationProbability, mutationAmount);
     population[i] = new AIVehicle(nn);
   }
@@ -186,7 +182,7 @@ function raceBestVehicle() {
 
   player = new PlayerVehicle();
   population = [];
-  population[0] = new AIVehicle(saved_nn, true);
+  population[0] = new AIVehicle(saved_nn);
   populationAlive = 1;
   timer = Infinity;
 }
@@ -206,6 +202,7 @@ function createBoxRaceTrack(z) {
 
 function drawStatsBox() {
   // Draw box around stats
+  push();
   fill(0, 99);
   noStroke();
   rect(
@@ -217,7 +214,6 @@ function drawStatsBox() {
 
   if (frameCount % 10 == 0) fps = round(getFrameRate());
 
-  push();
   textSize(20);
   fill(255);
   textAlign(LEFT);

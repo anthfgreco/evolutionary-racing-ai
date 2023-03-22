@@ -43,8 +43,8 @@ class NeuralNetwork {
         // Gene mutation probability
         const mask = tf.randomUniform(shape).less(mutationProbability);
 
-        // Gene mutation amount (with .mul(rate))
-        const noise = tf.randomNormal(shape).mul(mutationAmount); //.mul(rate);
+        // Gene mutation amount
+        const noise = tf.randomNormal(shape).mul(mutationAmount);
 
         // Add noise where mask is true
         const mutated = tf.where(mask, tensor.add(noise), tensor);

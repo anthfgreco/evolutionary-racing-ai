@@ -1,5 +1,5 @@
 class AIVehicle extends Vehicle {
-  constructor(nn, showTrail = false) {
+  constructor(nn) {
     super();
 
     /*
@@ -24,7 +24,6 @@ class AIVehicle extends Vehicle {
     this.inputs = new Float32Array(this.LAYER_SIZES[0]);
 
     this.fitness = 0;
-    this.showTrail = showTrail;
     this.currentCheckpoint = 0;
   }
 
