@@ -12,10 +12,10 @@ Demo: https://anthfgreco.github.io/evolutionary-self-driving/
 - [x] Drifting physics
 - [x] Migrate from ml5.js to TensorFlow.js
 - [x] Drivable car to race against computer
+- [x] Load pre-trained neural net
 - [ ] Explanation + helper text below canvas
 - [ ] Control panel to change simulation variables
 - [ ] Map creator tool
-- [ ] Load pre-trained neural net
 - [ ] Improve UI, display fitness history and other stats (React?)
 
 ## Getting started

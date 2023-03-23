@@ -17,6 +17,7 @@ let averageSpeed = 0;
 let populationAlive = populationSize;
 let timer = timePerGeneration;
 let saved_nn;
+let pretrained_nn;
 let checkpointSize = 80;
 
 let clickedPoints = [];
@@ -31,6 +32,7 @@ function preload() {
   yellowCarImg = loadImage("img/yellowcar.png");
   blueCarImg = loadImage("img/bluecar.png");
   sportsCarImg = loadImage("img/SportsRacingCar_1.png");
+  loadPretrainedModel();
 }
 
 // Setup is ran once at the beginning of the page being loaded
@@ -187,16 +189,20 @@ function raceBestVehicle() {
   timer = Infinity;
 }
 
-async function raceTrainedVehicle() {
+function racePretrainedVehicle() {
   state = "race";
   player = new PlayerVehicle();
   population = [];
-  population[0] = new AIVehicle();
-  let modelURL =
-    "https://raw.githubusercontent.com/anthfgreco/evolutionary-self-driving/main/pretrained-model/model.json";
-  population[0].nn.model = await tf.loadLayersModel(modelURL);
+  population[0] = new AIVehicle(pretrained_nn);
   populationAlive = 1;
   timer = Infinity;
+}
+
+async function loadPretrainedModel() {
+  let pretrainedModel = await tf.loadLayersModel(
+    "https://raw.githubusercontent.com/anthfgreco/evolutionary-self-driving/main/pretrained-model/model.json"
+  );
+  pretrained_nn = new NeuralNetwork(pretrainedModel, 8, 6, 2);
 }
 
 function createBoxRaceTrack(z) {

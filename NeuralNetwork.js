@@ -1,3 +1,13 @@
+/*
+model = population[0].nn.model;
+model.predict(tf.tensor2d([[0,0,0,0,0,0,0,0]])).dataSync()
+
+model = population[0].nn.model;
+for (let i = 0; i < model.getWeights().length; i++) {
+    (model.getWeights()[i].print());
+}
+*/
+
 class NeuralNetwork {
   constructor(a, b, c, d) {
     if (a instanceof tf.Sequential) {
