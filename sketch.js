@@ -187,6 +187,18 @@ function raceBestVehicle() {
   timer = Infinity;
 }
 
+async function raceTrainedVehicle() {
+  state = "race";
+  player = new PlayerVehicle();
+  population = [];
+  population[0] = new AIVehicle();
+  let modelURL =
+    "https://raw.githubusercontent.com/anthfgreco/evolutionary-self-driving/main/pretrained-model/model.json";
+  population[0].nn.model = await tf.loadLayersModel(modelURL);
+  populationAlive = 1;
+  timer = Infinity;
+}
+
 function createBoxRaceTrack(z) {
   let topLeft = createVector(z, z);
   let topRight = createVector(width - z, z);
@@ -279,6 +291,9 @@ function keyPressed() {
       break;
     case "R":
       raceBestVehicle();
+      break;
+    case "L":
+      raceTrainedVehicle();
       break;
   }
 }
