@@ -81,6 +81,10 @@ class NeuralNetwork {
     this.model.dispose();
   }
 
+  save() {
+    this.model.save("downloads://model");
+  }
+
   predict(inputs) {
     return tf.tidy(() => {
       const xs = tf.tensor2d([inputs]);
