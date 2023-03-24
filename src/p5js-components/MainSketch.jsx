@@ -5,10 +5,12 @@ let maxCanvasHeight = 750;
 let scale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
+let player;
+let drawRays = true;
 
 let walls = [];
 
-let width, height;
+let canvasWidth, canvasHeight;
 
 export default function MainSketch({ xspeed }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,10 +27,12 @@ export default function MainSketch({ xspeed }) {
   function setup(p5, canvasParentRef) {
     // Create a 1000x750 canvas, scaled down if the screen is smaller
     scale = p5.constrain(screen.width / maxCanvasWidth, 0, 1);
-    width = maxCanvasWidth * scale;
-    height = maxCanvasHeight * scale;
-    p5.createCanvas(width, height).parent(canvasParentRef);
-    extraCanvas = p5.createGraphics(width, height).parent(canvasParentRef);
+    canvasWidth = maxCanvasWidth * scale;
+    canvasHeight = maxCanvasHeight * scale;
+    p5.createCanvas(canvasWidth, canvasHeight).parent(canvasParentRef);
+    extraCanvas = p5
+      .createGraphics(canvasWidth, canvasHeight)
+      .parent(canvasParentRef);
 
     // This one line increases the speed of the simulation by 2-3x.
     // CPU is dramatically faster than webgl in this case because my models are extremely small and
@@ -52,6 +56,8 @@ export default function MainSketch({ xspeed }) {
         );
       }
     }
+
+    player = new PlayerVehicle(p5);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,9 +68,12 @@ export default function MainSketch({ xspeed }) {
     p5.image(extraCanvas, 0, 0);
 
     // Draw the walls
-    for (let wall of walls) {
-      wall.show(p5);
+    for (let i = 0; i < walls.length; i++) {
+      walls[i].show(p5);
     }
+
+    player.update(p5, walls, drawRays);
+    player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,9 +85,9 @@ export default function MainSketch({ xspeed }) {
    */
   function createBoxRaceTrack(p5, z) {
     let topLeft = p5.createVector(z, z);
-    let topRight = p5.createVector(width - z, z);
-    let bottomLeft = p5.createVector(z, height - z);
-    let bottomRight = p5.createVector(width - z, height - z);
+    let topRight = p5.createVector(canvasWidth - z, z);
+    let bottomLeft = p5.createVector(z, canvasHeight - z);
+    let bottomRight = p5.createVector(canvasWidth - z, canvasHeight - z);
     walls.push(
       new Wall(p5, topLeft.x, topLeft.y, topRight.x, topRight.y),
       new Wall(p5, topRight.x, topRight.y, bottomRight.x, bottomRight.y),

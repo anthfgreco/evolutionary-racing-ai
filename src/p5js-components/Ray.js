@@ -12,7 +12,14 @@ class Ray {
     this.dir = p5.Vector.fromAngle(angle);
   }
 
-  cast(wall) {
+  /**
+   * Calculates the intersection point between a ray and a wall.
+   * Algorithm from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+   * @param p5
+   * @param {Wall} wall wall to cast ray against.
+   * @returns {(p5.Vector|boolean)} The intersection point as a p5.Vector if it exists, or false if no intersection is found.
+   */
+  cast(p5, wall) {
     const x1 = wall.a.x;
     const y1 = wall.a.y;
     const x2 = wall.b.x;
@@ -36,7 +43,7 @@ class Ray {
     const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) * invDen;
 
     if (u > 0) {
-      return createVector(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
+      return p5.createVector(x1 + t * (x2 - x1), y1 + t * (y2 - y1));
     } else {
       return false;
     }
