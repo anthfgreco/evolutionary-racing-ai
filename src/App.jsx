@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import Canvas from "./Canvas";
+import MainSketch from "./p5js-components/MainSketch";
 import { Slider } from "baseui/slider";
 
 function App() {
@@ -9,8 +9,6 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Vite + React</h1>
-
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
@@ -24,7 +22,7 @@ function App() {
         max={5}
       />
 
-      <Canvas xspeed={xspeed[0]} />
+      <MainSketch xspeed={xspeed[0]} />
     </div>
   );
 }
