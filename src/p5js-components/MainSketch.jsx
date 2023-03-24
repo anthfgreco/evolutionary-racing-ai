@@ -1,7 +1,13 @@
 import Sketch from "react-p5";
 
 let populationSize = 50;
-let timePerGeneration = 10;
+let mutationProbability = 0.1;
+let mutationAmount = 0.5;
+let numChampions = 2;
+let timePerGeneration = 5;
+
+let drawRays = false;
+let drawCheckpoints = false;
 
 let maxCanvasWidth = 1000;
 let maxCanvasHeight = 750;
@@ -9,12 +15,12 @@ let scale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
-let drawRays = false;
 let state = "player-drive";
 let populationAlive = populationSize;
 let pretrained_nn;
 let timer = timePerGeneration;
 let checkpointSize = 80;
+let generation_num;
 
 let walls = [];
 let population = [];
@@ -39,7 +45,9 @@ export default function MainSketch({ xspeed }) {
     scale = p5.constrain(screen.width / maxCanvasWidth, 0, 1);
     canvasWidth = maxCanvasWidth * scale;
     canvasHeight = maxCanvasHeight * scale;
+
     p5.createCanvas(canvasWidth, canvasHeight).parent(canvasParentRef);
+
     extraCanvas = p5
       .createGraphics(canvasWidth, canvasHeight)
       .parent(canvasParentRef);
@@ -68,7 +76,7 @@ export default function MainSketch({ xspeed }) {
     }
 
     player = new PlayerVehicle(p5);
-    //newGeneration();
+    newGeneration(p5);
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -78,9 +86,26 @@ export default function MainSketch({ xspeed }) {
     p5.background("#CCC9C0");
     p5.image(extraCanvas, 0, 0);
 
+    if (p5.frameCount % 60 == 0 && timer > 0) timer--;
+
     // Draw the walls
     for (let i = 0; i < walls.length; i++) {
       walls[i].show(p5);
+    }
+
+    // Draw the checkpoints
+    if (drawCheckpoints) {
+      p5.push();
+      p5.textSize(20);
+      p5.textAlign(p5.CENTER);
+      p5.noStroke();
+      for (let i = 0; i < checkpoints.length; i++) {
+        p5.fill(25, 50);
+        p5.circle(checkpoints[i].x, checkpoints[i].y, checkpointSize * 2);
+        p5.fill(255);
+        p5.text(i + 1, checkpoints[i].x, checkpoints[i].y);
+      }
+      p5.pop();
     }
 
     if (state == "player-drive") {
@@ -100,6 +125,24 @@ export default function MainSketch({ xspeed }) {
         checkpointSize
       );
       population[0].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+    }
+
+    if (state == "training") {
+      for (let i = 0; i < populationSize; i++) {
+        population[i].update(
+          p5,
+          walls,
+          drawRays,
+          timer,
+          timePerGeneration,
+          checkpointSize
+        );
+        population[i].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+      }
+
+      if (timer == 0) {
+        newGeneration(p5);
+      }
     }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +165,52 @@ export default function MainSketch({ xspeed }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
+  function newGeneration(p5) {
+    timer = timePerGeneration;
+    populationAlive = populationSize;
+
+    if (population.length == 0) {
+      generation_num = 1;
+      population = [];
+      for (let i = 0; i < populationSize; i++) {
+        population.push(new AIVehicle(p5));
+      }
+      state = "training";
+      return;
+    }
+
+    sortPopulationByFitness();
+
+    console.log(
+      "Gen " + generation_num + ": " + population[0].fitness + " fitness"
+    );
+
+    // Population length is 1 after a race
+    let numUnaltered = Math.min(numChampions, population.length);
+
+    // Carry over to the next generation with no mutations (0 to numUnaltered)
+    for (let i = 0; i < numUnaltered; i++) {
+      population[i] = new AIVehicle(p5, population[i].getNeuralNetwork());
+    }
+
+    // The rest of the population will be mutations of the champions (numUnaltered to populationSize)
+    for (let i = numUnaltered; i < populationSize; i++) {
+      let championIndex = Math.floor(Math.random() * numUnaltered);
+      let nn = population[championIndex].getNeuralNetwork();
+      nn.mutate(mutationProbability, mutationAmount);
+      population[i] = new AIVehicle(p5, nn);
+    }
+
+    state = "training";
+    generation_num++;
+  }
+
+  function sortPopulationByFitness() {
+    population.sort(function (a, b) {
+      return b.fitness - a.fitness;
+    });
+  }
+
   /**
    * Creates four Wall objects that form a rectangle around the canvas.
    * @param p5
@@ -153,7 +242,7 @@ export default function MainSketch({ xspeed }) {
     population = [];
     population[0] = new AIVehicle(p5, pretrained_nn);
     populationAlive = 1;
-    //timer = Infinity;
+    timer = Infinity;
   }
 
   return (
