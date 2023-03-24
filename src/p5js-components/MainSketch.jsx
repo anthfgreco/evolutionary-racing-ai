@@ -1,14 +1,23 @@
 import Sketch from "react-p5";
 
+let populationSize = 50;
+let timePerGeneration = 10;
+
 let maxCanvasWidth = 1000;
 let maxCanvasHeight = 750;
 let scale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
-let drawRays = true;
+let drawRays = false;
+let state = "player-drive";
+let populationAlive = populationSize;
+let pretrained_nn;
+let timer = timePerGeneration;
+let checkpointSize = 80;
 
 let walls = [];
+let population = [];
 
 let canvasWidth, canvasHeight;
 
@@ -20,6 +29,7 @@ export default function MainSketch({ xspeed }) {
     yellowCarImg = p5.loadImage("img/yellowcar.png");
     blueCarImg = p5.loadImage("img/bluecar.png");
     sportsCarImg = p5.loadImage("img/SportsRacingCar_1.png");
+    loadPretrainedModel();
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,6 +68,7 @@ export default function MainSketch({ xspeed }) {
     }
 
     player = new PlayerVehicle(p5);
+    //newGeneration();
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,8 +83,41 @@ export default function MainSketch({ xspeed }) {
       walls[i].show(p5);
     }
 
-    player.update(p5, walls, drawRays);
-    player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+    if (state == "player-drive") {
+      player.update(p5, walls, drawRays);
+      player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+    }
+
+    if (state == "race") {
+      player.update(p5, walls, drawRays);
+      player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+      population[0].update(
+        p5,
+        walls,
+        drawRays,
+        timer,
+        timePerGeneration,
+        checkpointSize
+      );
+      population[0].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
+    }
+  }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+  function keyPressed(p5) {
+    let key = p5.key.toUpperCase();
+    switch (key) {
+      // case "G":
+      //   newGeneration();
+      //   break;
+      // case "R":
+      //   raceBestVehicle();
+      //   break;
+      case "L":
+        racePretrainedVehicle(p5);
+        break;
+    }
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,5 +140,28 @@ export default function MainSketch({ xspeed }) {
     );
   }
 
-  return <Sketch preload={preload} setup={setup} draw={draw} />;
+  async function loadPretrainedModel() {
+    let pretrainedModel = await tf.loadLayersModel(
+      "https://raw.githubusercontent.com/anthfgreco/evolutionary-self-driving/main/pretrained-model/model.json"
+    );
+    pretrained_nn = new NeuralNetwork(pretrainedModel, 8, 6, 2);
+  }
+
+  function racePretrainedVehicle(p5) {
+    state = "race";
+    player = new PlayerVehicle(p5);
+    population = [];
+    population[0] = new AIVehicle(p5, pretrained_nn);
+    populationAlive = 1;
+    //timer = Infinity;
+  }
+
+  return (
+    <Sketch
+      preload={preload}
+      setup={setup}
+      draw={draw}
+      keyPressed={keyPressed}
+    />
+  );
 }

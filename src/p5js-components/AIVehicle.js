@@ -1,6 +1,6 @@
 class AIVehicle extends Vehicle {
-  constructor(nn) {
-    super();
+  constructor(p5, nn) {
+    super(p5);
 
     /*
     The AI evolves extremely quickly with this configuration
@@ -27,14 +27,24 @@ class AIVehicle extends Vehicle {
     this.currentCheckpoint = 0;
   }
 
-  update() {
+  /**
+   * Updates the vehicle's position and rotation using steering physics, detects collisions with walls, forward pass
+   * through neural network to predict steering, and calculates fitness based on checkpoints passed.
+   * @param p5
+   * @param {Wall[]} walls array of Walls that the vehicle can collide with.
+   * @param {boolean} drawRays if true, draw the rays from the car to the walls.
+   * @param {number} timer current timer value.
+   * @param {number} timePerGeneration maximum timer value.
+   * @param {number} checkpointSize size of the checkpoints.
+   */
+  update(p5, walls, drawRays, timer, timePerGeneration, checkpointSize) {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
-    const hitWall = this.look(walls);
+    const hitWall = this.look(p5, walls, drawRays);
 
     if (hitWall) {
-      this.kill();
+      this.kill(p5);
       populationAlive--;
       return;
     }
@@ -46,20 +56,20 @@ class AIVehicle extends Vehicle {
       return;
     }
 
-    this.drive();
+    this.drive(p5);
 
     this.think();
 
     // Old fitness function, not ideal because AI learns to drive in circles
     //this.fitness += this.steeringPhysicsUpdate();
 
-    this.steeringPhysicsUpdate();
-    this.fitness += this.checkCheckpoint();
+    this.steeringPhysicsUpdate(p5);
+    this.fitness += this.checkCheckpoint(p5, checkpointSize);
   }
 
-  checkCheckpoint() {
+  checkCheckpoint(p5, checkpointSize) {
     // Check if the player's position is within the radius of the current checkpoint
-    let d = dist(
+    let d = p5.dist(
       this.d.x,
       this.d.y,
       checkpoints[this.currentCheckpoint].x,

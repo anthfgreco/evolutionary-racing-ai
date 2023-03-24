@@ -160,7 +160,7 @@ class Vehicle {
 
       if (closestPt && drawRays) {
         p5.push();
-        p5.stroke(255, 75);
+        p5.stroke(25, 75);
         p5.strokeWeight(3);
         p5.line(this.d.x, this.d.y, closestPt.x, closestPt.y);
         p5.pop();
