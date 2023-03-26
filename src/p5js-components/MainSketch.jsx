@@ -1,8 +1,6 @@
 import Sketch from "react-p5";
 
-let populationSize = 50;
-let mutationProbability = 0.1;
-let mutationAmount = 0.5;
+let populationSize = 3; //50;
 let numChampions = 2;
 let timePerGeneration = 5;
 
@@ -27,7 +25,7 @@ let population = [];
 
 let canvasWidth, canvasHeight;
 
-export default function MainSketch({ xspeed }) {
+export default function MainSketch({ mutationProbability, mutationAmount }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +40,7 @@ export default function MainSketch({ xspeed }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function setup(p5, canvasParentRef) {
     // Create a 1000x750 canvas, scaled down if the screen is smaller
-    scale = p5.constrain(screen.width / maxCanvasWidth, 0, 1);
+    scale = p5.constrain(window.innerWidth / maxCanvasWidth, 0, 1);
     canvasWidth = maxCanvasWidth * scale;
     canvasHeight = maxCanvasHeight * scale;
 
@@ -57,7 +55,7 @@ export default function MainSketch({ xspeed }) {
     // the overhead of transferring data to the GPU is surprisingly large.
     tf.setBackend("cpu");
 
-    createBoxRaceTrack(p5, 0);
+    //createBoxRaceTrack(p5, 0);
 
     // Draw racetrack from points in Points.js
     // Each inner for loop is a continuous line
