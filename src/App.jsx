@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import MainSketch from "./p5js-components/MainSketch";
 import { Slider } from "baseui/slider";
 import { FormControl } from "baseui/form-control";
@@ -15,18 +15,36 @@ function App() {
   const [mutationAmount, setMutationAmount] = useState(0.5);
   const [populationSize, setPopulationSize] = useState(50);
   const [timePerGeneration, setTimePerGeneration] = useState(5);
+  const [timer, setTimer] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (timer >= timePerGeneration) {
+        setTimer(0);
+      } else {
+        setTimer(timer + 1);
+      }
+
+      setTotalTime((totalTime) => totalTime + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  useEffect(() => {
+    console.table({
+      mutationProbability: mutationProbability,
+      mutationAmount: mutationAmount,
+      populationSize: populationSize,
+      timePerGeneration: timePerGeneration,
+    });
+  }, [mutationProbability, mutationAmount, populationSize, timePerGeneration]);
 
   const genesMutated = Math.round(mutationProbability * 68);
   const mutationProbabilityCaption = `${genesMutated} out of 68 car genes will be mutated.`;
 
   const mutationAmountString = Math.round(mutationAmount * 100);
   const mutationAmountCaption = `Each mutated gene will be changed by ${mutationAmountString}%.`;
-
-  console.table({
-    mutationProbability: mutationProbability,
-    mutationAmount: mutationAmount,
-    populationSize: populationSize,
-  });
 
   return (
     <div className="App">
@@ -35,6 +53,7 @@ function App() {
         mutationProbability={mutationProbability}
         mutationAmount={mutationAmount}
         timePerGeneration={timePerGeneration}
+        timer={timer}
       />
 
       <Block

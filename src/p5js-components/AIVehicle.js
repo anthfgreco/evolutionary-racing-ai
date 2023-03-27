@@ -49,7 +49,7 @@ class AIVehicle extends Vehicle {
     }
 
     // Kill the car if it's not moving
-    if (this.getVel() <= 0.1 && timer < timePerGeneration - 1) {
+    if (this.getVel() <= 0.1 && timer > 1) {
       this.kill(p5);
       return;
     }

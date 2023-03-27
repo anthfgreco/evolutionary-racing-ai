@@ -11,10 +11,8 @@ let scale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
-let state = "player-drive";
-let populationAlive;
+let state;
 let pretrained_nn;
-let timer;
 let checkpointSize = 80;
 let generation_num;
 
@@ -28,6 +26,7 @@ export default function MainSketch({
   mutationProbability,
   mutationAmount,
   timePerGeneration,
+  timer,
 }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -76,7 +75,6 @@ export default function MainSketch({
       }
     }
 
-    timer = timePerGeneration;
     player = new PlayerVehicle(p5);
     newGeneration(p5);
   }
@@ -87,8 +85,6 @@ export default function MainSketch({
     p5.scale(scale);
     p5.background("#CCC9C0");
     p5.image(extraCanvas, 0, 0);
-
-    if (p5.frameCount % 60 == 0 && timer > 0) timer--;
 
     // Draw the walls
     for (let i = 0; i < walls.length; i++) {
@@ -142,7 +138,7 @@ export default function MainSketch({
         population[i].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
       }
 
-      if (timer == 0) {
+      if (timer >= timePerGeneration) {
         newGeneration(p5);
       }
     }
@@ -168,9 +164,6 @@ export default function MainSketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function newGeneration(p5) {
-    timer = timePerGeneration;
-    populationAlive = populationSize;
-
     if (population.length == 0) {
       generation_num = 1;
       population = [];
@@ -209,6 +202,7 @@ export default function MainSketch({
       population[i] = new AIVehicle(p5, nn);
     }
 
+    timer = 0;
     state = "training";
     generation_num++;
   }
@@ -249,8 +243,6 @@ export default function MainSketch({
     player = new PlayerVehicle(p5);
     population = [];
     population[0] = new AIVehicle(p5, pretrained_nn);
-    populationAlive = 1;
-    timer = Infinity;
   }
 
   return (
