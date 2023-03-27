@@ -1,8 +1,6 @@
 import Sketch from "react-p5";
 
-let populationSize = 3; //50;
 let numChampions = 2;
-let timePerGeneration = 5;
 
 let drawRays = false;
 let drawCheckpoints = false;
@@ -14,9 +12,9 @@ let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
 let state = "player-drive";
-let populationAlive = populationSize;
+let populationAlive;
 let pretrained_nn;
-let timer = timePerGeneration;
+let timer;
 let checkpointSize = 80;
 let generation_num;
 
@@ -25,7 +23,12 @@ let population = [];
 
 let canvasWidth, canvasHeight;
 
-export default function MainSketch({ mutationProbability, mutationAmount }) {
+export default function MainSketch({
+  populationSize,
+  mutationProbability,
+  mutationAmount,
+  timePerGeneration,
+}) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,6 +76,7 @@ export default function MainSketch({ mutationProbability, mutationAmount }) {
       }
     }
 
+    timer = timePerGeneration;
     player = new PlayerVehicle(p5);
     newGeneration(p5);
   }
@@ -126,7 +130,7 @@ export default function MainSketch({ mutationProbability, mutationAmount }) {
     }
 
     if (state == "training") {
-      for (let i = 0; i < populationSize; i++) {
+      for (let i = 0; i < population.length; i++) {
         population[i].update(
           p5,
           walls,
@@ -185,11 +189,17 @@ export default function MainSketch({ mutationProbability, mutationAmount }) {
 
     // Population length is 1 after a race
     let numUnaltered = Math.min(numChampions, population.length);
+    let unalteredPopulation = [];
 
     // Carry over to the next generation with no mutations (0 to numUnaltered)
     for (let i = 0; i < numUnaltered; i++) {
-      population[i] = new AIVehicle(p5, population[i].getNeuralNetwork());
+      unalteredPopulation[i] = new AIVehicle(
+        p5,
+        population[i].getNeuralNetwork()
+      );
     }
+
+    population = unalteredPopulation;
 
     // The rest of the population will be mutations of the champions (numUnaltered to populationSize)
     for (let i = numUnaltered; i < populationSize; i++) {
