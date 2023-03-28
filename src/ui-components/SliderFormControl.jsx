@@ -1,5 +1,6 @@
 import { FormControl } from "baseui/form-control";
 import { Block } from "baseui/block";
+
 import InfoToolTip from "./InfoToolTip";
 
 export default function SliderFormControl({

@@ -3,6 +3,8 @@ import { Block } from "baseui/block";
 import { ReactComponent as InfoIcon } from "/img/info.svg";
 
 export default function InfoToolTip({ infoToolTipContent }) {
+  const iconSize = "14px";
+
   return (
     <StatefulTooltip
       content={() => (
@@ -17,8 +19,8 @@ export default function InfoToolTip({ infoToolTipContent }) {
       returnFocus
       autoFocus
     >
-      <Block>
-        <InfoIcon width={"15px"} height={"15px"} />
+      <Block display="flex">
+        <InfoIcon width={iconSize} height={iconSize} />
       </Block>
     </StatefulTooltip>
   );
