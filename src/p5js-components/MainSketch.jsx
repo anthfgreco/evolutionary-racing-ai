@@ -118,8 +118,7 @@ export default function MainSketch({
         p5,
         walls,
         drawRays,
-        timer,
-        timePerGeneration,
+
         checkpointSize
       );
       population[0].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
@@ -131,8 +130,7 @@ export default function MainSketch({
           p5,
           walls,
           drawRays,
-          timer,
-          timePerGeneration,
+
           checkpointSize
         );
         population[i].show(p5, yellowCarImg, sportsCarImg, extraCanvas);

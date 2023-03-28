@@ -26,7 +26,7 @@ function App() {
         setTimer(timer + 1);
       }
 
-      setTotalTime((totalTime) => totalTime + 1);
+      setTotalTime(totalTime + 1);
     }, 1000);
     return () => clearInterval(interval);
   }, [timer]);

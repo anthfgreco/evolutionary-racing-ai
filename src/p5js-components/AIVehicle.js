@@ -33,23 +33,15 @@ class AIVehicle extends Vehicle {
    * @param p5
    * @param {Wall[]} walls array of Walls that the vehicle can collide with.
    * @param {boolean} drawRays if true, draw the rays from the car to the walls.
-   * @param {number} timer current timer value.
-   * @param {number} timePerGeneration maximum timer value.
    * @param {number} checkpointSize size of the checkpoints.
    */
-  update(p5, walls, drawRays, timer, timePerGeneration, checkpointSize) {
+  update(p5, walls, drawRays, checkpointSize) {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
     const hitWall = this.look(p5, walls, drawRays);
 
     if (hitWall) {
-      this.kill(p5);
-      return;
-    }
-
-    // Kill the car if it's not moving
-    if (this.getVel() <= 0.1 && timer > 1) {
       this.kill(p5);
       return;
     }
