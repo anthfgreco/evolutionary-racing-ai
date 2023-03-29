@@ -1,4 +1,4 @@
-import Sketch from "react-p5";
+import ReactP5Sketch from "react-p5";
 
 let numChampions = 2;
 
@@ -14,19 +14,19 @@ let player;
 let state;
 let pretrained_nn;
 let checkpointSize = 80;
-let generation_num;
 
 let walls = [];
 let population = [];
 
 let canvasWidth, canvasHeight;
 
-export default function MainSketch({
+export default function Sketch({
   populationSize,
   mutationProbability,
   mutationAmount,
   timePerGeneration,
   timer,
+  generationNum,
 }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,6 @@ export default function MainSketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function newGeneration(p5) {
     if (population.length == 0) {
-      generation_num = 1;
       population = [];
       for (let i = 0; i < populationSize; i++) {
         population.push(new AIVehicle(p5));
@@ -175,7 +174,7 @@ export default function MainSketch({
     sortPopulationByFitness();
 
     console.log(
-      "Gen " + generation_num + ": " + population[0].fitness + " fitness"
+      "Gen " + generationNum + ": " + population[0].fitness + " fitness"
     );
 
     // Population length is 1 after a race
@@ -202,7 +201,6 @@ export default function MainSketch({
 
     timer = 0;
     state = "training";
-    generation_num++;
   }
 
   function sortPopulationByFitness() {
@@ -244,7 +242,7 @@ export default function MainSketch({
   }
 
   return (
-    <Sketch
+    <ReactP5Sketch
       preload={preload}
       setup={setup}
       draw={draw}
