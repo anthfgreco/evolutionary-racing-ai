@@ -17,6 +17,7 @@ import {
 } from "baseui/typography";
 
 import Sketch from "./p5js-components/Sketch";
+import InfoBanner from "./ui-components/InfoBanner";
 import SliderFormControl from "./ui-components/SliderFormControl";
 import RadioButtonGroup from "./ui-components/RadioButtonGroup";
 
@@ -59,16 +60,6 @@ function App() {
     }
   }, [selectedButtonIndex]);
 
-  function formatTime(seconds) {
-    let minutes = Math.floor(seconds / 60);
-    seconds = seconds - minutes * 60;
-    if (minutes == 0) {
-      return `${seconds}s`;
-    } else {
-      return `${minutes}m ${seconds}s`;
-    }
-  }
-
   const genesMutated = Math.round(mutationProbability * 68);
   const mutationProbabilityCaption = `${genesMutated} out of 68 car genes will be mutated.`;
 
@@ -90,56 +81,12 @@ function App() {
         width={["100%", "100%", "800px"]} // see https://baseweb.design/components/block/#responsive-layouts
         //backgroundColor={"limegreen"}
       >
-        <Banner>
-          <Block width="100%" display="flex" alignItems="center">
-            <Block
-              display="flex"
-              flexDirection={["column", "column", "row"]}
-              alignItems="center"
-            >
-              <LabelSmall>Generation:</LabelSmall>
-              <Tag
-                closeable={false}
-                kind={KIND.neutral}
-                variant={VARIANT.solid}
-              >
-                #{generationNum}
-              </Tag>
-            </Block>
-
-            <Block
-              display="flex"
-              flexDirection={["column", "column", "row"]}
-              alignItems="center"
-              marginLeft="6px"
-            >
-              <LabelSmall>Time remaining:</LabelSmall>
-              <Tag
-                closeable={false}
-                kind={KIND.neutral}
-                variant={VARIANT.solid}
-              >
-                {formatTime(timePerGeneration - timer)}
-              </Tag>
-            </Block>
-
-            <Block
-              display="flex"
-              flexDirection={["column", "column", "row"]}
-              alignItems="center"
-              marginLeft="auto"
-            >
-              <LabelSmall>Total Simulation Time:</LabelSmall>
-              <Tag
-                closeable={false}
-                kind={KIND.neutral}
-                variant={VARIANT.solid}
-              >
-                {formatTime(totalTime)}
-              </Tag>
-            </Block>
-          </Block>
-        </Banner>
+        <InfoBanner
+          generationNum={generationNum}
+          timePerGeneration={timePerGeneration}
+          timer={timer}
+          totalTime={totalTime}
+        />
 
         <Block position="relative">
           <Card
