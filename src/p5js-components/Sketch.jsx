@@ -229,7 +229,7 @@ export default function Sketch({
 
   async function loadPretrainedModel() {
     let pretrainedModel = await tf.loadLayersModel(
-      "https://raw.githubusercontent.com/anthfgreco/evolutionary-self-driving/main/pretrained-model/model.json"
+      "https://raw.githubusercontent.com/anthfgreco/evolutionary-racing-ai/main/pretrained-model/model.json"
     );
     pretrained_nn = new NeuralNetwork(pretrainedModel, 8, 6, 2);
   }
