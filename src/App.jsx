@@ -88,6 +88,8 @@ function App() {
           totalTime={totalTime}
         />
 
+        <br />
+
         <Block position="relative">
           <Card
             overrides={{
@@ -96,7 +98,11 @@ function App() {
                   outlineColor: "black",
                   outlineStyle: "solid",
                   outlineWidth: "2px",
-                  margin: "20px",
+                  marginTop: "30px",
+                  marginRight: "20px",
+                  marginBottom: "20px",
+                  marginLeft: "20px",
+                  paddingTop: "20px",
                 }),
               },
             }}
@@ -106,8 +112,6 @@ function App() {
               setSelectedButtonIndex={setSelectedButtonIndex}
             />
 
-            <br />
-
             <ParagraphSmall>
               Exploration introduces diversity into the population. Use it at
               the beginning of training or if the AI is stuck on a difficult
@@ -115,8 +119,7 @@ function App() {
             </ParagraphSmall>
 
             <ParagraphSmall>
-              Exploitation fine-tunes the best performing cars. Use it when the
-              AI has learned the track.
+              Exploitation fine-tunes the best performing cars.
             </ParagraphSmall>
 
             <Block width="100%" display={"inline-flex"}>

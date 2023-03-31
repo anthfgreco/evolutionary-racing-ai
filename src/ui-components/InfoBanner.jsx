@@ -41,7 +41,7 @@ function InfoBanner({ generationNum, timePerGeneration, timer, totalTime }) {
         <InfoItem
           label="Time remaining"
           value={formatSecondsToTimeString(timePerGeneration - timer)}
-          marginLeft="6px"
+          marginLeft="10px"
         />
         <InfoItem
           label="Total Simulation Time"
