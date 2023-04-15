@@ -1,7 +1,9 @@
-# evolutionary-racing-ai
-
-![GitHub Last Commit](https://img.shields.io/github/last-commit/anthfgreco/evolutionary-racing-ai)
-![GitHub Repo Size](https://img.shields.io/github/repo-size/anthfgreco/evolutionary-racing-ai)
+<div align="center">
+  <img src="https://img.shields.io/github/last-commit/anthfgreco/evolutionary-racing-ai" 
+       alt="GitHub Last Commit"/>
+  <img src="https://img.shields.io/github/repo-size/anthfgreco/evolutionary-racing-ai" 
+       alt"GitHub Repo Size"/>
+</div>
 
 <!-- PROJECT LOGO -->
 <br />
