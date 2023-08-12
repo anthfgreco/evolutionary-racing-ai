@@ -5,28 +5,35 @@ let numChampions = 2;
 let drawRays = false;
 let drawCheckpoints = false;
 
-let maxCanvasWidth = 1000;
-let maxCanvasHeight = 750;
+const CANVAS_WIDTH = 1000;
+const CANVAS_HEIGHT = 750;
+const CHECKPOINT_SIZE = 80;
+const ATTEMPT_FRAMERATE = 60;
+
 let scale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
 let state;
 let pretrained_nn;
-let checkpointSize = 80;
 
 let walls = [];
 let population = [];
 
-let canvasWidth, canvasHeight;
+let scaledCanvasWidth, scaledCanvasHeight;
 
 export default function Sketch({
   populationSize,
   mutationProbability,
   mutationAmount,
   timePerGeneration,
-  timer,
+  timeRemaining,
+  setTimeRemaining,
+  totalTime,
+  setTotalTime,
   generationNum,
+  setGenerationNum,
+  // addData,
 }) {
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,14 +49,19 @@ export default function Sketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function setup(p5, canvasParentRef) {
     // Create a 1000x750 canvas, scaled down if the screen is smaller
-    scale = p5.constrain(window.innerWidth / maxCanvasWidth, 0, 1);
-    canvasWidth = maxCanvasWidth * scale;
-    canvasHeight = maxCanvasHeight * scale;
+    scale = p5.constrain(window.innerWidth / CANVAS_WIDTH, 0, 1);
+    scaledCanvasWidth = CANVAS_WIDTH * scale;
+    scaledCanvasHeight = CANVAS_HEIGHT * scale;
 
-    p5.createCanvas(canvasWidth, canvasHeight).parent(canvasParentRef);
+    p5.createCanvas(scaledCanvasWidth, scaledCanvasHeight).parent(
+      canvasParentRef
+    );
+
+    // Attempt to maintain 60fps
+    p5.frameRate(ATTEMPT_FRAMERATE);
 
     extraCanvas = p5
-      .createGraphics(canvasWidth, canvasHeight)
+      .createGraphics(scaledCanvasWidth, scaledCanvasHeight)
       .parent(canvasParentRef);
 
     // This one line increases the speed of the simulation by 2-3x.
@@ -82,6 +94,11 @@ export default function Sketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function draw(p5) {
+    if (p5.frameCount % ATTEMPT_FRAMERATE === 0) {
+      setTimeRemaining(timeRemaining - 1);
+      setTotalTime(totalTime + 1);
+    }
+
     p5.scale(scale);
     p5.background("#CCC9C0");
     p5.image(extraCanvas, 0, 0);
@@ -99,7 +116,7 @@ export default function Sketch({
       p5.noStroke();
       for (let i = 0; i < checkpoints.length; i++) {
         p5.fill(25, 50);
-        p5.circle(checkpoints[i].x, checkpoints[i].y, checkpointSize * 2);
+        p5.circle(checkpoints[i].x, checkpoints[i].y, CHECKPOINT_SIZE * 2);
         p5.fill(255);
         p5.text(i + 1, checkpoints[i].x, checkpoints[i].y);
       }
@@ -114,29 +131,17 @@ export default function Sketch({
     if (state == "race") {
       player.update(p5, walls, drawRays);
       player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
-      population[0].update(
-        p5,
-        walls,
-        drawRays,
-
-        checkpointSize
-      );
+      population[0].update(p5, walls, drawRays, CHECKPOINT_SIZE);
       population[0].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
     }
 
     if (state == "training") {
       for (let i = 0; i < population.length; i++) {
-        population[i].update(
-          p5,
-          walls,
-          drawRays,
-
-          checkpointSize
-        );
+        population[i].update(p5, walls, drawRays, CHECKPOINT_SIZE);
         population[i].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
       }
 
-      if (timer >= timePerGeneration) {
+      if (timeRemaining === 0) {
         newGeneration(p5);
       }
     }
@@ -173,6 +178,8 @@ export default function Sketch({
 
     sortPopulationByFitness();
 
+    // addData(population[0].fitness);
+
     console.log(
       "Gen " + generationNum + ": " + population[0].fitness + " fitness"
     );
@@ -199,8 +206,9 @@ export default function Sketch({
       population[i] = new AIVehicle(p5, nn);
     }
 
-    timer = 0;
     state = "training";
+    setTimeRemaining(timePerGeneration);
+    setGenerationNum(generationNum + 1);
   }
 
   function sortPopulationByFitness() {
@@ -216,9 +224,12 @@ export default function Sketch({
    */
   function createBoxRaceTrack(p5, z) {
     let topLeft = p5.createVector(z, z);
-    let topRight = p5.createVector(canvasWidth - z, z);
-    let bottomLeft = p5.createVector(z, canvasHeight - z);
-    let bottomRight = p5.createVector(canvasWidth - z, canvasHeight - z);
+    let topRight = p5.createVector(scaledCanvasWidth - z, z);
+    let bottomLeft = p5.createVector(z, scaledCanvasHeight - z);
+    let bottomRight = p5.createVector(
+      scaledCanvasWidth - z,
+      scaledCanvasHeight - z
+    );
     walls.push(
       new Wall(p5, topLeft.x, topLeft.y, topRight.x, topRight.y),
       new Wall(p5, topRight.x, topRight.y, bottomRight.x, bottomRight.y),

@@ -33,9 +33,9 @@ class AIVehicle extends Vehicle {
    * @param p5
    * @param {Wall[]} walls array of Walls that the vehicle can collide with.
    * @param {boolean} drawRays if true, draw the rays from the car to the walls.
-   * @param {number} checkpointSize size of the checkpoints.
+   * @param {number} CHECKPOINT_SIZE size of the checkpoints.
    */
-  update(p5, walls, drawRays, checkpointSize) {
+  update(p5, walls, drawRays, CHECKPOINT_SIZE) {
     if (!this.alive) return;
 
     // Shoot rays from car and calculate the length of each ray from car to the wall
@@ -54,10 +54,10 @@ class AIVehicle extends Vehicle {
     //this.fitness += this.steeringPhysicsUpdate();
 
     this.steeringPhysicsUpdate(p5);
-    this.fitness += this.checkCheckpoint(p5, checkpointSize);
+    this.fitness += this.checkCheckpoint(p5, CHECKPOINT_SIZE);
   }
 
-  checkCheckpoint(p5, checkpointSize) {
+  checkCheckpoint(p5, CHECKPOINT_SIZE) {
     // Check if the player's position is within the radius of the current checkpoint
     let d = p5.dist(
       this.d.x,
@@ -65,7 +65,7 @@ class AIVehicle extends Vehicle {
       checkpoints[this.currentCheckpoint].x,
       checkpoints[this.currentCheckpoint].y
     );
-    if (d < checkpointSize) {
+    if (d < CHECKPOINT_SIZE) {
       this.currentCheckpoint =
         (this.currentCheckpoint + 1) % checkpoints.length;
       return 1;

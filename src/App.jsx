@@ -15,36 +15,24 @@ import {
   LabelSmall,
   LabelXSmall,
 } from "baseui/typography";
+import { Table, SIZE, DIVIDER } from "baseui/table-semantic";
 
 import Sketch from "./p5js-components/Sketch";
 import InfoBanner from "./ui-components/InfoBanner";
 import SliderFormControl from "./ui-components/SliderFormControl";
 import RadioButtonGroup from "./ui-components/RadioButtonGroup";
 
+//let tableData = [];
+
 function App() {
   const [mutationProbability, setMutationProbability] = useState(0.1);
   const [mutationAmount, setMutationAmount] = useState(0.5);
   const [populationSize, setPopulationSize] = useState(50);
   const [timePerGeneration, setTimePerGeneration] = useState(5);
-  const [timer, setTimer] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(timePerGeneration);
   const [totalTime, setTotalTime] = useState(0);
   const [selectedButtonIndex, setSelectedButtonIndex] = useState(0);
   const [generationNum, setGenerationNum] = useState(1);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (timer >= timePerGeneration) {
-        setTimer(0);
-        setGenerationNum(generationNum + 1);
-      } else {
-        setTimer(timer + 1);
-      }
-
-      setTotalTime(totalTime + 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timer]);
 
   useEffect(() => {
     // exploration
@@ -60,6 +48,11 @@ function App() {
     }
   }, [selectedButtonIndex]);
 
+  // function addData(bestFitness) {
+  //   //tableData.push([generationNum, bestFitness]);
+  //   tableData = [[generationNum, bestFitness], ...tableData];
+  // }
+
   const genesMutated = Math.round(mutationProbability * 68);
   const mutationProbabilityCaption = `${genesMutated} out of 68 car genes will be mutated.`;
 
@@ -69,22 +62,27 @@ function App() {
   return (
     <div className="App">
       <Sketch
-        populationSize={populationSize}
-        mutationProbability={mutationProbability}
-        mutationAmount={mutationAmount}
-        timePerGeneration={timePerGeneration}
-        timer={timer}
-        generationNum={generationNum}
+        {...{
+          populationSize,
+          mutationProbability,
+          mutationAmount,
+          timePerGeneration,
+          timeRemaining,
+          setTimeRemaining,
+          totalTime,
+          setTotalTime,
+          generationNum,
+          setGenerationNum,
+          // addData,
+        }}
       />
 
       <Block
-        width={["100%", "100%", "800px"]} // see https://baseweb.design/components/block/#responsive-layouts
-        //backgroundColor={"limegreen"}
+        width={["100%", "100%", "1000px"]} // see https://baseweb.design/components/block/#responsive-layouts
       >
         <InfoBanner
           generationNum={generationNum}
-          timePerGeneration={timePerGeneration}
-          timer={timer}
+          timeRemaining={timeRemaining}
           totalTime={totalTime}
         />
 
@@ -215,6 +213,22 @@ function App() {
             </Block>
           </Card>
         </Block>
+
+        {/* <Table
+          columns={["Generation", "Fitness"]}
+          data={tableData}
+          size={SIZE.compact}
+          divider={DIVIDER.vertical}
+          overrides={{
+            Root: {
+              style: {
+                maxHeight: "300px",
+                maxWidth: "300px",
+                margin: "20px",
+              },
+            },
+          }}
+        /> */}
       </Block>
     </div>
   );

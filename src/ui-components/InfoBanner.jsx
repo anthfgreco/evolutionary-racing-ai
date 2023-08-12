@@ -3,7 +3,9 @@ import { Block } from "baseui/block";
 import { Tag, KIND, VARIANT } from "baseui/tag";
 import { LabelSmall } from "baseui/typography";
 
-function InfoBanner({ generationNum, timePerGeneration, timer, totalTime }) {
+import InfoItem from "./InfoItem";
+
+function InfoBanner({ generationNum, timeRemaining, totalTime }) {
   function formatSecondsToTimeString(seconds) {
     let minutes = Math.floor(seconds / 60);
     seconds = seconds - minutes * 60;
@@ -12,22 +14,6 @@ function InfoBanner({ generationNum, timePerGeneration, timer, totalTime }) {
     } else {
       return `${minutes}m ${seconds}s`;
     }
-  }
-
-  function InfoItem({ label, value, marginLeft }) {
-    return (
-      <Block
-        display="flex"
-        flexDirection={["column", "column", "row"]}
-        alignItems="center"
-        marginLeft={marginLeft}
-      >
-        <LabelSmall>{label}:</LabelSmall>
-        <Tag closeable={false} kind={KIND.neutral} variant={VARIANT.solid}>
-          {value}
-        </Tag>
-      </Block>
-    );
   }
 
   return (
@@ -40,7 +26,7 @@ function InfoBanner({ generationNum, timePerGeneration, timer, totalTime }) {
         />
         <InfoItem
           label="Time remaining"
-          value={formatSecondsToTimeString(timePerGeneration - timer)}
+          value={formatSecondsToTimeString(timeRemaining)}
           marginLeft="10px"
         />
         <InfoItem

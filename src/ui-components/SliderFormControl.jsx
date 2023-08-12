@@ -3,12 +3,7 @@ import { Block } from "baseui/block";
 
 import InfoToolTip from "./InfoToolTip";
 
-export default function SliderFormControl({
-  label,
-  infoToolTipContent,
-  caption,
-  slider,
-}) {
+function SliderFormControl({ label, infoToolTipContent, caption, slider }) {
   return (
     <Block flex={1}>
       <FormControl
@@ -39,3 +34,5 @@ export default function SliderFormControl({
     </Block>
   );
 }
+
+export default SliderFormControl;

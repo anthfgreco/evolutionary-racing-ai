@@ -2,7 +2,7 @@ import { StatefulTooltip, PLACEMENT } from "baseui/tooltip";
 import { Block } from "baseui/block";
 import { ReactComponent as InfoIcon } from "/img/info.svg";
 
-export default function InfoToolTip({ infoToolTipContent }) {
+function InfoToolTip({ infoToolTipContent }) {
   const iconSize = "14px";
 
   return (
@@ -25,3 +25,5 @@ export default function InfoToolTip({ infoToolTipContent }) {
     </StatefulTooltip>
   );
 }
+
+export default InfoToolTip;
