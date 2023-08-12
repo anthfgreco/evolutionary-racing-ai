@@ -17,6 +17,9 @@
   <p align="center">
     Watch cars learn to drive using neuro-evolution.
   </p>
+  <p align="center">
+    Demo: <a href="https://evolutionary-racing-ai.vercel.app/">evolutionary-racing-ai.vercel.app</a>
+  </p>
 </div>
 
 ## About
