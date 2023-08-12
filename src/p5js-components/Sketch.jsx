@@ -5,7 +5,10 @@ import NeuralNetwork from "./NeuralNetwork";
 import PlayerVehicle from "./PlayerVehicle";
 import Wall from "./Wall";
 import { checkpoints, wallPoints } from "./Points";
-import Ray from "./Ray";
+
+import yellowCarImgURL from "/img/yellowcar.png";
+import blueCarImgURL from "/img/bluecar.png";
+import sportsCarImgURL from "/img/SportsRacingCar_1.png";
 
 let numChampions = 2;
 
@@ -46,9 +49,9 @@ export default function Sketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function preload(p5) {
-    yellowCarImg = p5.loadImage("img/yellowcar.png");
-    blueCarImg = p5.loadImage("img/bluecar.png");
-    sportsCarImg = p5.loadImage("img/SportsRacingCar_1.png");
+    yellowCarImg = p5.loadImage(yellowCarImgURL);
+    blueCarImg = p5.loadImage(blueCarImgURL);
+    sportsCarImg = p5.loadImage(sportsCarImgURL);
     loadPretrainedModel();
   }
   ///////////////////////////////////////////////////////////////////////////////////////////////////
