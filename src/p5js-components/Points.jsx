@@ -602,7 +602,7 @@ wallPoints = [
 ];
 */
 
-checkpoints = [
+const checkpoints = [
   {
     x: 532.5,
     y: 669.5,
@@ -937,7 +937,7 @@ checkpoints = [
   },
 ];
 
-wallPoints = [
+const wallPoints = [
   [
     {
       x: 184.5,
@@ -1159,3 +1159,5 @@ wallPoints = [
     },
   ],
 ];
+
+export { checkpoints, wallPoints };

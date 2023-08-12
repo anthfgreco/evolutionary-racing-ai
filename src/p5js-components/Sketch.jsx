@@ -1,5 +1,12 @@
 import ReactP5Sketch from "react-p5";
 
+import AIVehicle from "./AIVehicle";
+import NeuralNetwork from "./NeuralNetwork";
+import PlayerVehicle from "./PlayerVehicle";
+import Wall from "./Wall";
+import { checkpoints, wallPoints } from "./Points";
+import Ray from "./Ray";
+
 let numChampions = 2;
 
 let drawRays = false;

@@ -1,4 +1,6 @@
-class PlayerVehicle extends Vehicle {
+import Vehicle from "./Vehicle";
+
+export default class PlayerVehicle extends Vehicle {
   constructor(p5) {
     super(p5);
   }

@@ -8,7 +8,7 @@ for (let i = 0; i < model.getWeights().length; i++) {
 }
 */
 
-class NeuralNetwork {
+export default class NeuralNetwork {
   constructor(a, b, c, d) {
     if (a instanceof tf.Sequential) {
       this.model = a;

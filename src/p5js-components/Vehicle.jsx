@@ -1,6 +1,8 @@
+import Ray from "./Ray";
+
 // Drift physics from https://github.com/michaelruppe/drift-car
 
-class Vehicle {
+export default class Vehicle {
   constructor(p5) {
     this.alive = true;
     this.numRays = 6;

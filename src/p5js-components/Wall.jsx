@@ -1,4 +1,4 @@
-class Wall {
+export default class Wall {
   constructor(p5, x1, y1, x2, y2) {
     this.a = p5.createVector(x1, y1);
     this.b = p5.createVector(x2, y2);

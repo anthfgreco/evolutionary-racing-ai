@@ -1,4 +1,4 @@
-class Ray {
+export default class Ray {
   constructor() {
     this.pos;
     this.dir;

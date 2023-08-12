@@ -1,4 +1,8 @@
-class AIVehicle extends Vehicle {
+import Vehicle from "./Vehicle";
+import NeuralNetwork from "./NeuralNetwork";
+import { checkpoints } from "./Points";
+
+export default class AIVehicle extends Vehicle {
   constructor(p5, nn) {
     super(p5);
 
