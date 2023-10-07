@@ -1,8 +1,5 @@
 import { Banner } from "baseui/banner";
 import { Block } from "baseui/block";
-import { Tag, KIND, VARIANT } from "baseui/tag";
-import { LabelSmall } from "baseui/typography";
-
 import InfoItem from "./InfoItem";
 
 function InfoBanner({ generationNum, timeRemaining, totalTime }) {

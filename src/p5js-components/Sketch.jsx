@@ -110,7 +110,8 @@ export default function Sketch({
     }
 
     p5.scale(scale);
-    p5.background("#CCC9C0");
+    // p5.background("#CCC9C0");
+    p5.background("#FFFFFF");
     p5.image(extraCanvas, 0, 0);
 
     // Draw the walls

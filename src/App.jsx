@@ -2,25 +2,13 @@ import { useState, useEffect } from "react";
 import { Slider } from "baseui/slider";
 import { Block } from "baseui/block";
 import { Card } from "baseui/card";
-import { Banner } from "baseui/banner";
-import { Tag, KIND, VARIANT } from "baseui/tag";
-import { styled } from "styletron-react";
-import {
-  ParagraphLarge,
-  ParagraphMedium,
-  ParagraphSmall,
-  ParagraphXSmall,
-  LabelLarge,
-  LabelMedium,
-  LabelSmall,
-  LabelXSmall,
-} from "baseui/typography";
-import { Table, SIZE, DIVIDER } from "baseui/table-semantic";
-
+import { ParagraphMedium } from "baseui/typography";
+import { DisplayXSmall } from "baseui/typography";
 import Sketch from "./p5js-components/Sketch";
 import InfoBanner from "./ui-components/InfoBanner";
 import SliderFormControl from "./ui-components/SliderFormControl";
 import RadioButtonGroup from "./ui-components/RadioButtonGroup";
+import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 
 //let tableData = [];
 
@@ -61,6 +49,12 @@ function App() {
 
   return (
     <div className="App">
+      <Block width="100%" display="flex" justifyContent="center">
+        <DisplayXSmall marginBottom="scale900">
+          Evolutionary Racing AI
+        </DisplayXSmall>
+      </Block>
+
       <Sketch
         {...{
           populationSize,
@@ -81,12 +75,12 @@ function App() {
         width={["100%", "100%", "1000px"]} // see https://baseweb.design/components/block/#responsive-layouts
       >
         <InfoBanner
-          generationNum={generationNum}
-          timeRemaining={timeRemaining}
-          totalTime={totalTime}
+          {...{
+            generationNum,
+            timeRemaining,
+            totalTime,
+          }}
         />
-
-        <br />
 
         <Block position="relative">
           <Card
@@ -96,7 +90,7 @@ function App() {
                   outlineColor: "black",
                   outlineStyle: "solid",
                   outlineWidth: "2px",
-                  marginTop: "30px",
+                  marginTop: "50px",
                   marginRight: "20px",
                   marginBottom: "20px",
                   marginLeft: "20px",
@@ -110,107 +104,115 @@ function App() {
               setSelectedButtonIndex={setSelectedButtonIndex}
             />
 
-            <ParagraphSmall>
+            <ParagraphMedium>
               Exploration introduces diversity into the population. Use it at
               the beginning of training or if the AI is stuck on a difficult
               turn.
-            </ParagraphSmall>
+            </ParagraphMedium>
 
-            <ParagraphSmall>
+            <ParagraphMedium>
               Exploitation fine-tunes the best performing cars.
-            </ParagraphSmall>
+            </ParagraphMedium>
 
-            <Block width="100%" display={"inline-flex"}>
-              <SliderFormControl
-                label={"Mutation Probability (%)"}
-                infoToolTipContent={[
-                  "Determines the likelihood that a gene will mutate.",
-                  "🔼 Higher mutation probability ➡ large changes to the car's neural network",
-                  "🔽 Lower mutation probability ➡ fewer changes and slower evolution",
-                ]}
-                caption={mutationProbabilityCaption}
-                slider={
-                  <Slider
-                    value={[mutationProbability * 100]}
-                    onChange={({ value }) =>
-                      value && setMutationProbability(value[0] / 100)
-                    }
-                    min={0}
-                    max={100}
-                    step={1}
-                    valueToLabel={(value) => `${Math.round(value)}%`}
-                    width="100%"
-                  />
-                }
-              />
-
-              <SliderFormControl
-                label={"Mutation Amount (%)"}
-                infoToolTipContent={[
-                  "Determines the amount that a gene will mutate.",
-                  "🔼 Higher mutation amount ➡ large changes to the car's neural network",
-                  "🔽 Lower mutation amount ➡ fewer changes and slower evolution",
-                ]}
-                caption={mutationAmountCaption}
-                slider={
-                  <Slider
-                    value={[mutationAmount * 100]}
-                    onChange={({ value }) =>
-                      value && setMutationAmount(value[0] / 100)
-                    }
-                    min={0}
-                    max={100}
-                    valueToLabel={(value) => `${Math.round(value)}%`}
-                  />
-                }
-              />
-            </Block>
-
-            <Block width="100%" display={"inline-flex"}>
-              <SliderFormControl
-                label={"Population Size"}
-                infoToolTipContent={[
-                  "Determines the number of cars in the population.",
-                  "🔼 Higher population size ➡ quicker to find a solution but computationally expensive",
-                  "🔽 Lower population size ➡ slower to find a solution",
-                ]}
-                caption={""}
-                slider={
-                  <Slider
-                    value={[populationSize]}
-                    onChange={({ value }) =>
-                      value && setPopulationSize(value[0])
-                    }
-                    min={10}
-                    max={100}
-                    step={1}
-                    valueToLabel={(value) => `${value}`}
-                  />
-                }
-              />
-
-              <SliderFormControl
-                label={"Time Per Generation (s)"}
-                infoToolTipContent={[
-                  "Determines the amount of time each generation will run for.",
-                  "🔼 Higher time per generation ➡ able to learn entire track but takes longer to evolve",
-                  "🔽 Lower time per generation ➡ able to learn small sections of track but evolves faster",
-                ]}
-                caption={""}
-                slider={
-                  <Slider
-                    value={[timePerGeneration]}
-                    onChange={({ value }) =>
-                      value && setTimePerGeneration(value[0])
-                    }
-                    min={5}
-                    max={60}
-                    step={1}
-                    valueToLabel={(value) => `${value}s`}
-                  />
-                }
-              />
-            </Block>
+            <FlexGrid
+              width="100%"
+              flexGridColumnCount={[1, 1, 2]}
+              flexGridColumnGap="scale800"
+              flexGridRowGap="scale400"
+            >
+              <FlexGridItem>
+                <SliderFormControl
+                  label={"Mutation Probability (%)"}
+                  infoToolTipContent={[
+                    "Determines the likelihood that a gene will mutate.",
+                    "🔼 Higher mutation probability ➡ large changes to the car's neural network",
+                    "🔽 Lower mutation probability ➡ fewer changes and slower evolution",
+                  ]}
+                  caption={mutationProbabilityCaption}
+                  slider={
+                    <Slider
+                      value={[mutationProbability * 100]}
+                      onChange={({ value }) =>
+                        value && setMutationProbability(value[0] / 100)
+                      }
+                      min={0}
+                      max={100}
+                      step={1}
+                      valueToLabel={(value) => `${Math.round(value)}%`}
+                      width="100%"
+                    />
+                  }
+                />
+              </FlexGridItem>
+              <FlexGridItem>
+                <SliderFormControl
+                  label={"Mutation Amount (%)"}
+                  infoToolTipContent={[
+                    "Determines the amount that a gene will mutate.",
+                    "🔼 Higher mutation amount ➡ large changes to the car's neural network",
+                    "🔽 Lower mutation amount ➡ fewer changes and slower evolution",
+                  ]}
+                  caption={mutationAmountCaption}
+                  slider={
+                    <Slider
+                      value={[mutationAmount * 100]}
+                      onChange={({ value }) =>
+                        value && setMutationAmount(value[0] / 100)
+                      }
+                      min={0}
+                      max={100}
+                      valueToLabel={(value) => `${Math.round(value)}%`}
+                    />
+                  }
+                />
+              </FlexGridItem>
+              <FlexGridItem>
+                <SliderFormControl
+                  label={"Population Size"}
+                  infoToolTipContent={[
+                    "Determines the number of cars in the population.",
+                    "🔼 Higher population size ➡ quicker to find a solution but computationally expensive",
+                    "🔽 Lower population size ➡ slower to find a solution",
+                  ]}
+                  caption={""}
+                  slider={
+                    <Slider
+                      value={[populationSize]}
+                      onChange={({ value }) =>
+                        value && setPopulationSize(value[0])
+                      }
+                      min={10}
+                      max={100}
+                      step={1}
+                      valueToLabel={(value) => `${value}`}
+                    />
+                  }
+                />
+              </FlexGridItem>
+              <FlexGridItem>
+                <SliderFormControl
+                  label={"Time Per Generation (s)"}
+                  infoToolTipContent={[
+                    "Determines the amount of time each generation will run for.",
+                    "🔼 Higher time per generation ➡ able to learn entire track but takes longer to evolve",
+                    "🔽 Lower time per generation ➡ able to learn small sections of track but evolves faster",
+                  ]}
+                  caption={""}
+                  slider={
+                    <Slider
+                      value={[timePerGeneration]}
+                      onChange={({ value }) =>
+                        value && setTimePerGeneration(value[0])
+                      }
+                      min={5}
+                      max={60}
+                      step={1}
+                      valueToLabel={(value) => `${value}s`}
+                    />
+                  }
+                />
+              </FlexGridItem>
+            </FlexGrid>
           </Card>
         </Block>
 

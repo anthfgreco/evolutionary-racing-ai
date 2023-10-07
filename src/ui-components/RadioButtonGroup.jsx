@@ -5,7 +5,7 @@ import { Card } from "baseui/card";
 
 function RadioButtonGroup({ selectedButtonIndex, setSelectedButtonIndex }) {
   return (
-    <Block position="absolute" left="50px" top="-40px">
+    <Block position="absolute" left={["35px", "35px", "70px"]} top="-32px">
       <Card
         overrides={{
           Root: {
@@ -14,6 +14,15 @@ function RadioButtonGroup({ selectedButtonIndex, setSelectedButtonIndex }) {
               borderRightStyle: "none",
               borderBottomStyle: "none",
               borderLeftStyle: "none",
+              // backgroundColor: "red",
+            }),
+          },
+          Contents: {
+            style: () => ({
+              marginTop: "8px",
+              marginRight: "8px",
+              marginBottom: "8px",
+              marginLeft: "8px",
             }),
           },
         }}

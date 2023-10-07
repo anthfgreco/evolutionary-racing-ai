@@ -9,8 +9,20 @@ function InfoItem({ label, value, marginLeft }) {
       flexDirection={["column", "column", "row"]}
       alignItems="center"
       marginLeft={marginLeft}
+      gridGap="5px"
     >
-      <LabelSmall>{label}:</LabelSmall>
+      <LabelSmall
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          height: "24px",
+        }}
+      >
+        {label}:
+      </LabelSmall>
+
       <Tag closeable={false} kind={KIND.neutral} variant={VARIANT.solid}>
         {value}
       </Tag>

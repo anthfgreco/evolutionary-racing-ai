@@ -13,14 +13,14 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-p5": "^1.3.35",
-    "styletron-engine-atomic": "^1.5.0",
-    "styletron-react": "^6.1.0",
-    "vite-plugin-svgr": "^3.2.0"
+    "styletron-engine-atomic": "^1.6.2",
+    "styletron-react": "^6.1.1",
+    "vite-plugin-svgr": "^4.1.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react-swc": "^3.3.2",
-    "vite": "^4.4.9"
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.11",
+    "@vitejs/plugin-react-swc": "^3.4.0",
+    "vite": "^4.4.11"
   }
 }
