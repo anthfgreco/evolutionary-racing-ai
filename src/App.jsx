@@ -30,6 +30,15 @@ function App() {
   const [selectedButtonIndex, setSelectedButtonIndex] = useState(0);
   const [generationNum, setGenerationNum] = useState(1);
 
+  /*
+  This one line increases the speed of the simulation by 5-10x.
+  WASM is dramatically faster than webgl (and cpu) in this case because my models are extremely small and
+  the overhead of transferring data to the GPU is surprisingly large.
+   */
+  useEffect(() => {
+    tf.setBackend("wasm");
+  }, []);
+
   useEffect(() => {
     // exploration
     if (selectedButtonIndex === 0) {

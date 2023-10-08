@@ -17,16 +17,11 @@
       src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"
     ></script>
 
-    <!-- 
-     This one line increases the speed of the simulation by 5-10x.
-     WASM is dramatically faster than webgl (and cpu) in this case because my models are extremely small and
-     the overhead of transferring data to the GPU is surprisingly large.
-     -->
-    <script>
+    <!-- <script>
       tf.setBackend("wasm").then(() => {
         import("./src/main.jsx");
       });
-    </script>
+    </script> -->
 
     <!-- Favicon -->
     <link
@@ -58,5 +53,6 @@
 
   <body>
     <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
