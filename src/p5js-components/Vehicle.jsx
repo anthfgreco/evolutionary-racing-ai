@@ -1,11 +1,12 @@
 import Ray from "./Ray";
+import { NUM_RAYS } from "../constants";
 
 // Drift physics from https://github.com/michaelruppe/drift-car
 
 export default class Vehicle {
   constructor(p5) {
     this.alive = true;
-    this.numRays = 6;
+    this.numRays = NUM_RAYS;
 
     this.rays = [];
     this.rayDistanceArray = new Float32Array(this.numRays);

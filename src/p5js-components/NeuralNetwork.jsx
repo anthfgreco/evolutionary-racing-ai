@@ -1,13 +1,3 @@
-/*
-model = population[0].nn.model;
-model.predict(tf.tensor2d([[0,0,0,0,0,0,0,0]])).dataSync()
-
-model = population[0].nn.model;
-for (let i = 0; i < model.getWeights().length; i++) {
-    (model.getWeights()[i].print());
-}
-*/
-
 export default class NeuralNetwork {
   constructor(a, b, c, d) {
     if (a instanceof tf.Sequential) {
@@ -21,6 +11,15 @@ export default class NeuralNetwork {
       this.output_nodes = c;
       this.model = this.createModel();
     }
+  }
+
+  predict(inputs) {
+    const xs = tf.tensor2d([inputs]);
+    const ys = this.model.predict(xs);
+    const outputs = ys.dataSync();
+    xs.dispose();
+    ys.dispose();
+    return outputs;
   }
 
   copy() {
@@ -93,16 +92,6 @@ export default class NeuralNetwork {
 
   save() {
     this.model.save("downloads://model");
-  }
-
-  predict(inputs) {
-    return tf.tidy(() => {
-      const xs = tf.tensor2d([inputs]);
-      const ys = this.model.predict(xs);
-      const outputs = ys.dataSync();
-      // console.log(outputs);
-      return outputs;
-    });
   }
 
   createModel() {

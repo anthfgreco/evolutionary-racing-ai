@@ -4,8 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Evolutionary Racing AI</title>
+
     <!-- TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script
+      crossorigin
+      src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js"
+    ></script>
+
+    <!-- Adds the WASM backend to the global backend registry -->
+    <script
+      crossorigin
+      src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm/dist/tf-backend-wasm.js"
+    ></script>
+
+    <!-- 
+     This one line increases the speed of the simulation by 5-10x.
+     WASM is dramatically faster than webgl (and cpu) in this case because my models are extremely small and
+     the overhead of transferring data to the GPU is surprisingly large.
+     -->
+    <script>
+      tf.setBackend("wasm").then(() => {
+        import("./src/main.jsx");
+      });
+    </script>
+
     <!-- Favicon -->
     <link
       rel="apple-touch-icon"
@@ -33,8 +55,8 @@
     <meta name="msapplication-TileColor" content="#da532c" />
     <meta name="theme-color" content="#ffffff" />
   </head>
+
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,34 +1,19 @@
 import Vehicle from "./Vehicle";
 import NeuralNetwork from "./NeuralNetwork";
 import { checkpoints } from "./Points";
+import { FORWARD_PASS_SKIP_FRAMES, LAYER_SIZES } from "../constants";
 
 export default class AIVehicle extends Vehicle {
   constructor(p5, nn) {
     super(p5);
 
-    /*
-    The AI evolves extremely quickly with this configuration
-    AI is forced to have foot on gas to encourage fast driving + drifting, makes evolution dramatically faster
-
-    Input: 
-    x velocity, 
-    y velocity, 
-    6 ray distances
-
-    Hidden:
-    6
-
-    Output: 
-    steer left, 
-    steer right
-    */
-    this.LAYER_SIZES = [8, 6, 2];
-    if (nn) this.nn = nn;
-    else this.nn = new NeuralNetwork(...this.LAYER_SIZES);
-    this.inputs = new Float32Array(this.LAYER_SIZES[0]);
+    this.layerSizes = LAYER_SIZES;
+    this.nn = nn ? nn : new NeuralNetwork(...this.layerSizes);
+    this.inputs = new Float32Array(this.layerSizes[0]);
 
     this.fitness = 0;
     this.currentCheckpoint = 0;
+    this.action = "left";
   }
 
   /**
@@ -50,13 +35,20 @@ export default class AIVehicle extends Vehicle {
       return;
     }
 
+    const shouldPredict = p5.frameCount % FORWARD_PASS_SKIP_FRAMES === 0;
+
+    if (shouldPredict) {
+      this.think();
+    }
+
+    // Rotate based on action
+    if (this.action === "left") {
+      this.rotateLeft();
+    } else if (this.action === "right") {
+      this.rotateRight();
+    }
+
     this.drive(p5);
-
-    this.think();
-
-    // Old fitness function, not ideal because AI learns to drive in circles
-    //this.fitness += this.steeringPhysicsUpdate();
-
     this.steeringPhysicsUpdate(p5);
     this.fitness += this.checkCheckpoint(p5, CHECKPOINT_SIZE);
   }
@@ -90,16 +82,24 @@ export default class AIVehicle extends Vehicle {
     }
 
     // Argmax
-    let output = this.nn.predict(this.inputs);
-    let predictedAction = output.indexOf(Math.max(...output));
+    const output = this.nn.predict(this.inputs);
 
-    switch (predictedAction) {
-      case 0:
-        this.rotateLeft();
-        break;
-      case 1:
-        this.rotateRight();
-        break;
+    // const predictedAction = output.indexOf(Math.max(...output));
+
+    let maxVal = -Infinity;
+    let predictedAction = -1;
+    for (let i = 0; i < output.length; i++) {
+      if (output[i] > maxVal) {
+        maxVal = output[i];
+        predictedAction = i;
+      }
+    }
+
+    // Set the action based on prediction
+    if (predictedAction === 0) {
+      this.action = "left";
+    } else if (predictedAction === 1) {
+      this.action = "right";
     }
   }
 }

@@ -10,27 +10,32 @@ import yellowCarImgURL from "/img/yellowcar.png";
 import blueCarImgURL from "/img/bluecar.png";
 import sportsCarImgURL from "/img/SportsRacingCar_1.png";
 
-let numChampions = 2;
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  CHECKPOINT_SIZE,
+  ATTEMPT_FRAMERATE,
+  DRAW_RAYS,
+  DRAW_CHECKPOINTS,
+  NUM_OF_ELITES,
+} from "../constants";
 
-let drawRays = false;
-let drawCheckpoints = false;
-
-const CANVAS_WIDTH = 1000;
-const CANVAS_HEIGHT = 750;
-const CHECKPOINT_SIZE = 80;
-const ATTEMPT_FRAMERATE = 60;
-
-let scale;
+let canvasScale;
 let yellowCarImg, blueCarImg, sportsCarImg;
 let extraCanvas;
 let player;
-let state;
+let gameState;
 let pretrained_nn;
 
 let walls = [];
 let population = [];
 
 let scaledCanvasWidth, scaledCanvasHeight;
+
+let lastFrameTime = Date.now();
+
+let summedFrameMs = 0;
+let lastXFrames = 0;
 
 export default function Sketch({
   populationSize,
@@ -59,9 +64,9 @@ export default function Sketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function setup(p5, canvasParentRef) {
     // Create a 1000x750 canvas, scaled down if the screen is smaller
-    scale = p5.constrain(window.innerWidth / CANVAS_WIDTH, 0, 1);
-    scaledCanvasWidth = CANVAS_WIDTH * scale;
-    scaledCanvasHeight = CANVAS_HEIGHT * scale;
+    canvasScale = p5.constrain(window.innerWidth / CANVAS_WIDTH, 0, 1);
+    scaledCanvasWidth = CANVAS_WIDTH * canvasScale;
+    scaledCanvasHeight = CANVAS_HEIGHT * canvasScale;
 
     p5.createCanvas(scaledCanvasWidth, scaledCanvasHeight).parent(
       canvasParentRef
@@ -71,13 +76,10 @@ export default function Sketch({
     p5.frameRate(ATTEMPT_FRAMERATE);
 
     extraCanvas = p5
-      .createGraphics(scaledCanvasWidth, scaledCanvasHeight)
+      .createGraphics(CANVAS_WIDTH, CANVAS_HEIGHT)
       .parent(canvasParentRef);
 
-    // This one line increases the speed of the simulation by 2-3x.
-    // CPU is dramatically faster than webgl in this case because my models are extremely small and
-    // the overhead of transferring data to the GPU is surprisingly large.
-    tf.setBackend("cpu");
+    // extraCanvas.background(55);
 
     //createBoxRaceTrack(p5, 0);
 
@@ -104,12 +106,33 @@ export default function Sketch({
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   function draw(p5) {
+    const currentFrameTime = Date.now();
+
+    // Calculate frame duration.
+    const frameDuration = currentFrameTime - lastFrameTime;
+
+    // print the difference in time between the last frame and the current frame
+    // console.log("Frame duration: " + frameDuration + "ms");
+
+    // Add the current frame duration to the summed frame duration.
+    summedFrameMs += frameDuration;
+
+    if (lastXFrames === 60) {
+      const framesPerSecond = Math.round(1000 / (summedFrameMs / 60));
+      console.log("Average frame rate: " + framesPerSecond + "fps");
+      summedFrameMs = 0;
+      lastXFrames = 0;
+    }
+
+    lastXFrames += 1;
+    lastFrameTime = currentFrameTime;
+
     if (p5.frameCount % ATTEMPT_FRAMERATE === 0) {
       setTimeRemaining(timeRemaining - 1);
       setTotalTime(totalTime + 1);
     }
 
-    p5.scale(scale);
+    p5.scale(canvasScale);
     // p5.background("#CCC9C0");
     p5.background("#FFFFFF");
     p5.image(extraCanvas, 0, 0);
@@ -120,7 +143,7 @@ export default function Sketch({
     }
 
     // Draw the checkpoints
-    if (drawCheckpoints) {
+    if (DRAW_CHECKPOINTS) {
       p5.push();
       p5.textSize(20);
       p5.textAlign(p5.CENTER);
@@ -134,21 +157,21 @@ export default function Sketch({
       p5.pop();
     }
 
-    if (state == "player-drive") {
-      player.update(p5, walls, drawRays);
+    if (gameState == "player-drive") {
+      player.update(p5, walls, DRAW_RAYS);
       player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
     }
 
-    if (state == "race") {
-      player.update(p5, walls, drawRays);
+    if (gameState == "race") {
+      player.update(p5, walls, DRAW_RAYS);
       player.show(p5, yellowCarImg, sportsCarImg, extraCanvas);
-      population[0].update(p5, walls, drawRays, CHECKPOINT_SIZE);
+      population[0].update(p5, walls, DRAW_RAYS, CHECKPOINT_SIZE);
       population[0].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
     }
 
-    if (state == "training") {
+    if (gameState == "training") {
       for (let i = 0; i < population.length; i++) {
-        population[i].update(p5, walls, drawRays, CHECKPOINT_SIZE);
+        population[i].update(p5, walls, DRAW_RAYS, CHECKPOINT_SIZE);
         population[i].show(p5, yellowCarImg, sportsCarImg, extraCanvas);
       }
 
@@ -183,7 +206,7 @@ export default function Sketch({
       for (let i = 0; i < populationSize; i++) {
         population.push(new AIVehicle(p5));
       }
-      state = "training";
+      gameState = "training";
       return;
     }
 
@@ -196,7 +219,7 @@ export default function Sketch({
     );
 
     // Population length is 1 after a race
-    let numUnaltered = Math.min(numChampions, population.length);
+    let numUnaltered = Math.min(NUM_OF_ELITES, population.length);
     let unalteredPopulation = [];
 
     // Carry over to the next generation with no mutations (0 to numUnaltered)
@@ -217,7 +240,7 @@ export default function Sketch({
       population[i] = new AIVehicle(p5, nn);
     }
 
-    state = "training";
+    gameState = "training";
     setTimeRemaining(timePerGeneration);
     setGenerationNum(generationNum + 1);
   }
@@ -257,7 +280,7 @@ export default function Sketch({
   }
 
   function racePretrainedVehicle(p5) {
-    state = "race";
+    gameState = "race";
     player = new PlayerVehicle(p5);
     population = [];
     population[0] = new AIVehicle(p5, pretrained_nn);

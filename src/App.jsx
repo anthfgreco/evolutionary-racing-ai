@@ -9,13 +9,21 @@ import InfoBanner from "./ui-components/InfoBanner";
 import SliderFormControl from "./ui-components/SliderFormControl";
 import RadioButtonGroup from "./ui-components/RadioButtonGroup";
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
+import { LAYER_SIZES } from "./constants";
 
 //let tableData = [];
+
+let TOTAL_WEIGHTS = 0;
+
+// Loop through the layers and calculate the weights between current layer and next layer
+for (let i = 0; i < LAYER_SIZES.length - 1; i++) {
+  TOTAL_WEIGHTS += LAYER_SIZES[i] * LAYER_SIZES[i + 1];
+}
 
 function App() {
   const [mutationProbability, setMutationProbability] = useState(0.1);
   const [mutationAmount, setMutationAmount] = useState(0.5);
-  const [populationSize, setPopulationSize] = useState(50);
+  const [populationSize, setPopulationSize] = useState(100);
   const [timePerGeneration, setTimePerGeneration] = useState(5);
   const [timeRemaining, setTimeRemaining] = useState(timePerGeneration);
   const [totalTime, setTotalTime] = useState(0);
@@ -41,8 +49,8 @@ function App() {
   //   tableData = [[generationNum, bestFitness], ...tableData];
   // }
 
-  const genesMutated = Math.round(mutationProbability * 68);
-  const mutationProbabilityCaption = `${genesMutated} out of 68 car genes will be mutated.`;
+  const genesMutated = Math.round(mutationProbability * TOTAL_WEIGHTS);
+  const mutationProbabilityCaption = `${genesMutated} out of ${TOTAL_WEIGHTS} car genes will be mutated.`;
 
   const mutationAmountString = Math.round(mutationAmount * 100);
   const mutationAmountCaption = `Each mutated gene will be changed by ${mutationAmountString}%.`;
@@ -181,8 +189,8 @@ function App() {
                       onChange={({ value }) =>
                         value && setPopulationSize(value[0])
                       }
-                      min={10}
-                      max={100}
+                      min={50}
+                      max={1000}
                       step={1}
                       valueToLabel={(value) => `${value}`}
                     />
